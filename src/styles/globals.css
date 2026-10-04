@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+@config "../../tailwind.config.ts";
+
+:root {
+  --bg: #f5f5f7;
+  --card: #ffffff;
+  --text: #1d1d1f;
+  --text-secondary: #86868b;
+  --blue: #007aff;
+  --green: #34c759;
+  --yellow: #ffcc00;
+  --orange: #ff9500;
+  --red: #ff3b30;
+  --separator: #e5e5ea;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@utility card {
+  @apply bg-white rounded-[16px] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-4;
+}
+
+@utility modal-overlay {
+  @apply fixed inset-0 bg-black/40 z-50 flex items-end justify-center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@utility modal-content {
+  @apply bg-white rounded-t-2xl w-full max-w-[480px] p-6 max-h-[85vh] overflow-y-auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+@utility tab-bar {
+  @apply fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white/90 backdrop-blur-xl border-t border-[#e5e5ea] px-2 py-1 z-40;
+}
+
+@utility btn-primary {
+  @apply bg-[#007aff] text-white font-semibold rounded-xl py-3 px-6 active:scale-[0.98] transition-transform;
+}
+
+@utility btn-secondary {
+  @apply bg-[#e5e5ea] text-[#1d1d1f] font-semibold rounded-xl py-3 px-6 active:scale-[0.98] transition-transform;
+}
+
+@utility btn-danger {
+  @apply bg-[#ff3b30] text-white font-semibold rounded-xl py-3 px-6 active:scale-[0.98] transition-transform;
+}
+
+@utility chip {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+}
+
+@utility chip-green {
+  @apply chip bg-[#34c759]/10 text-[#34c759];
+}
+
+@utility chip-red {
+  @apply chip bg-[#ff3b30]/10 text-[#ff3b30];
+}
+
+@utility chip-orange {
+  @apply chip bg-[#ff9500]/10 text-[#ff9500];
+}
+
+@utility input-field {
+  @apply w-full bg-[#f2f2f7] rounded-xl px-4 py-3 text-[#1d1d1f] placeholder-[#86868b] outline-none focus:ring-2 focus:ring-[#007aff]/30 transition-all;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOutLeft {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(-100%); opacity: 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px 2px rgba(255, 204, 0, 0.4); }
+  50% { box-shadow: 0 0 18px 8px rgba(255, 204, 0, 0.7); }
+}
+
+.animate-slide-in {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.animate-slide-out {
+  animation: slideOutLeft 0.3s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
