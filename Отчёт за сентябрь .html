@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Элиф · Отчёт за сентябрь 2026</title>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --card: #ffffff;
+    --text: #1d1d1f;
+    --text2: #86868b;
+    --text3: #aeaeb2;
+    --green: #34c759;
+    --green-l: #e8f8ed;
+    --yellow: #ffcc00;
+    --yellow-l: #fff9e6;
+    --orange: #ff9500;
+    --orange-l: #fff3e6;
+    --red: #ff3b30;
+    --red-l: #ffebea;
+    --blue: #007aff;
+    --blue-l: #e8f2ff;
+    --purple: #af52de;
+    --purple-l: #f4e8fc;
+    --teal: #5ac8fa;
+    --teal-l: #e6f6fe;
+    --gray: #e5e5ea;
+    --gray-l: #f2f2f7;
+    --radius: 20px;
+    --radius-sm: 14px;
+    --shadow: 0 4px 16px rgba(0,0,0,0.06);
+    --shadow-lg: 0 20px 50px rgba(0,0,0,0.25);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== БУРГЕР КНОПКА ===== */
+  .burger {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 200;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: white;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.25s;
+  }
+  .burger:active { transform: scale(0.94); }
+  .burger span {
+    display: block;
+    width: 22px;
+    height: 2.5px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: all 0.25s;
+  }
+  .burger.open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
+  .burger.open span:nth-child(2) { opacity: 0; }
+  .burger.open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
+
+  /* ===== БОКОВАЯ ШТОРКА ===== */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 320px;
+    max-width: 85vw;
+    height: 100vh;
+    background: white;
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-header {
+    padding: 28px 24px 20px;
+    background: linear-gradient(135deg, #007aff 0%, #5856d6 60%, #af52de 100%);
+    color: white;
+  }
+  .sidebar-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    margin-bottom: 4px;
+  }
+  .sidebar-header p {
+    font-size: 14px;
+    opacity: 0.85;
+  }
+  .sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 0 24px;
+    scrollbar-width: thin;
+  }
+  .sidebar-nav::-webkit-scrollbar { width: 6px; }
+  .sidebar-nav::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 3px; }
+
+  .nav-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 16px 24px 6px;
+  }
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 24px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    transition: background 0.15s;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+  }
+  .nav-link:hover { background: var(--gray-l); }
+  .nav-link.active {
+    background: var(--blue-l);
+    border-left-color: var(--blue);
+    color: var(--blue);
+    font-weight: 600;
+  }
+  .nav-link .nav-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    width: 26px;
+    text-align: center;
+  }
+  .nav-link .nav-count {
+    margin-left: auto;
+    background: var(--gray-l);
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 10px;
+  }
+  .nav-link.active .nav-count {
+    background: rgba(0,122,255,0.15);
+    color: var(--blue);
+  }
+
+  /* ===== ОВЕРЛЕЙ ===== */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 250;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+
+  /* ===== ОСНОВНОЙ КОНТЕНТ ===== */
+  .main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 100px 20px 80px;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #007aff 0%, #5856d6 50%, #af52de 100%);
+    color: white;
+    padding: 50px 32px 44px;
+    border-radius: 32px;
+    margin-bottom: 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(10px);
+    padding: 8px 18px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 0.3px;
+    position: relative;
+  }
+  .hero h1 {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 14px;
+    line-height: 1.15;
+    position: relative;
+  }
+  .hero-sub {
+    font-size: 17px;
+    opacity: 0.9;
+    max-width: 520px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* SECTIONS */
+  section {
+    margin-bottom: 60px;
+    scroll-margin-top: 24px;
+  }
+  .section-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.8px;
+    margin-bottom: 12px;
+    line-height: 1.15;
+  }
+  .section-sub {
+    font-size: 17px;
+    color: var(--text2);
+    margin-bottom: 28px;
+    max-width: 640px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 26px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--blue);
+  }
+  .card.green { border-left-color: var(--green); }
+  .card.yellow { border-left-color: var(--yellow); }
+  .card.orange { border-left-color: var(--orange); }
+  .card.red { border-left-color: var(--red); }
+  .card.purple { border-left-color: var(--purple); }
+  .card.teal { border-left-color: var(--teal); }
+  .card.plain { border-left-color: var(--gray); }
+
+  .card h3 {
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    line-height: 1.3;
+  }
+  .card p { font-size: 15.5px; margin-bottom: 10px; color: #333; }
+  .card p:last-child { margin-bottom: 0; }
+  .card ul, .card ol { margin: 10px 0 10px 22px; font-size: 15.5px; }
+  .card li { margin-bottom: 6px; }
+  .card strong { font-weight: 600; color: var(--text); }
+
+  /* STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat {
+    background: var(--card);
+    border-radius: var(--radius-sm);
+    padding: 22px 16px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .stat-value {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--blue);
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+  .stat-value.green { color: var(--green); }
+  .stat-value.orange { color: var(--orange); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.purple { color: var(--purple); }
+  .stat-value.teal { color: var(--teal); }
+  .stat-label {
+    font-size: 12.5px;
+    color: var(--text2);
+    font-weight: 500;
+    margin-top: 8px;
+    line-height: 1.3;
+  }
+
+  /* LIST */
+  .list-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--gray);
+    align-items: flex-start;
+  }
+  .list-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .list-item:first-child { padding-top: 0; }
+  .list-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gray-l);
+    border-radius: 10px;
+  }
+  .list-body { flex: 1; font-size: 15.5px; }
+  .list-body strong { font-weight: 600; display: block; margin-bottom: 3px; }
+  .list-body .list-note { font-size: 14px; color: var(--text2); }
+
+  /* CHIPS */
+  .chip {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--gray-l);
+    color: var(--text2);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .chip.red { background: var(--red-l); color: var(--red); }
+  .chip.yellow { background: var(--yellow-l); color: #b38a00; }
+  .chip.green { background: var(--green-l); color: #1a7a30; }
+  .chip.blue { background: var(--blue-l); color: var(--blue); }
+  .chip.purple { background: var(--purple-l); color: var(--purple); }
+  .chip.teal { background: var(--teal-l); color: #0d7ea8; }
+  .chip.orange { background: var(--orange-l); color: #b36800; }
+
+  /* LETTERS */
+  .letter {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--purple);
+    position: relative;
+  }
+  .letter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .letter-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .letter-reason {
+    font-size: 14px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+  .copy-btn {
+    background: var(--blue);
+    color: white;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 22px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(0,122,255,0.25);
+  }
+  .copy-btn:hover { background: #0066d6; }
+  .copy-btn:active { transform: scale(0.95); }
+  .copy-btn.copied { background: var(--green); box-shadow: 0 3px 10px rgba(52,199,89,0.3); }
+
+  .letter-text {
+    font-size: 15.5px;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    color: #222;
+  }
+  .letter-sign {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--gray);
+    font-size: 13.5px;
+    color: var(--text2);
+    font-style: italic;
+  }
+
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 32px; margin: 8px 0; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: var(--gray);
+  }
+  .timeline-item {
+    position: relative;
+    padding-bottom: 18px;
+  }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -28px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--blue);
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px var(--blue);
+  }
+  .timeline-item.green::before { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
+  .timeline-item.orange::before { background: var(--orange); box-shadow: 0 0 0 2px var(--orange); }
+  .timeline-item.red::before { background: var(--red); box-shadow: 0 0 0 2px var(--red); }
+  .timeline-date {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+  }
+  .timeline-text { font-size: 15.5px; }
+
+  /* QUOTE / EXAMPLE */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .compare-box {
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .compare-box.bad {
+    background: var(--red-l);
+    border-left: 3px solid var(--red);
+    color: #7a1a14;
+  }
+  .compare-box.good {
+    background: var(--green-l);
+    border-left: 3px solid var(--green);
+    color: #145a24;
+  }
+  .compare-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  /* COMPETENCY GRID */
+  .comp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .comp-item {
+    padding: 16px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--blue-l);
+    border-left: 3px solid var(--blue);
+  }
+  .comp-item .comp-emoji {
+    font-size: 24px;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .comp-item .comp-name {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .comp-item .comp-desc {
+    font-size: 13px;
+    color: #333;
+    line-height: 1.4;
+  }
+  .comp-item:nth-child(2) { background: var(--green-l); border-left-color: var(--green); }
+  .comp-item:nth-child(3) { background: var(--purple-l); border-left-color: var(--purple); }
+  .comp-item:nth-child(4) { background: var(--orange-l); border-left-color: var(--orange); }
+  .comp-item:nth-child(5) { background: var(--teal-l); border-left-color: var(--teal); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: var(--text);
+    color: white;
+    padding: 14px 26px;
+    border-radius: 26px;
+    font-weight: 600;
+    font-size: 15px;
+    z-index: 999;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding: 40px 20px 20px;
+    color: var(--text2);
+    font-size: 13.5px;
+    line-height: 1.7;
+  }
+  .footer strong { color: var(--text); }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .main { padding: 88px 16px 60px; }
+    .hero { padding: 40px 22px 34px; border-radius: 26px; }
+    .hero h1 { font-size: 26px; }
+    .hero-sub { font-size: 15.5px; }
+    .section-title { font-size: 25px; }
+    .section-sub { font-size: 15.5px; }
+    .card { padding: 20px; }
+    .letter { padding: 22px; }
+    .letter-text { font-size: 15px; }
+    .compare { grid-template-columns: 1fr; }
+    .burger { top: 14px; left: 14px; width: 46px; height: 46px; border-radius: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- БУРГЕР -->
+<button class="burger" id="burger" onclick="toggleSidebar()" aria-label="Меню">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+
+<!-- ОВЕРЛЕЙ -->
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- БОКОВАЯ ШТОРКА -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h2>Элиф · Сентябрь</h2>
+    <p>Отчёт за первый месяц работы системы</p>
+  </div>
+  <nav class="sidebar-nav">
+
+    <div class="nav-section-label">Взгляд со стороны</div>
+    <a class="nav-link active" href="#overview" onclick="closeSidebar()">
+      <span class="nav-icon">🏠</span>
+      <span>Главная</span>
+    </a>
+    <a class="nav-link" href="#why" onclick="closeSidebar()">
+      <span class="nav-icon">💡</span>
+      <span>Как читать отчёт</span>
+    </a>
+    <a class="nav-link" href="#numbers" onclick="closeSidebar()">
+      <span class="nav-icon">📊</span>
+      <span>Цифры месяца</span>
+    </a>
+
+    <div class="nav-section-label">Результаты</div>
+    <a class="nav-link" href="#success" onclick="closeSidebar()">
+      <span class="nav-icon">✅</span>
+      <span>Что работает</span>
+      <span class="nav-count">6</span>
+    </a>
+    <a class="nav-link" href="#problems" onclick="closeSidebar()">
+      <span class="nav-icon">⚠️</span>
+      <span>Проблемы и причины</span>
+      <span class="nav-count">11</span>
+    </a>
+    <a class="nav-link" href="#data-quality" onclick="closeSidebar()">
+      <span class="nav-icon">🔍</span>
+      <span>Почему не по всем</span>
+    </a>
+
+    <div class="nav-section-label">Для педагогов</div>
+    <a class="nav-link" href="#how-to-write" onclick="closeSidebar()">
+      <span class="nav-icon">✍️</span>
+      <span>Как писать наблюдения</span>
+    </a>
+    <a class="nav-link" href="#competencies" onclick="closeSidebar()">
+      <span class="nav-icon">🎯</span>
+      <span>5 компетенций</span>
+    </a>
+    <a class="nav-link" href="#teacher-recs" onclick="closeSidebar()">
+      <span class="nav-icon">📋</span>
+      <span>Задание на октябрь</span>
+    </a>
+
+    <div class="nav-section-label">Для Диляры Талятовны</div>
+    <a class="nav-link" href="#owner-recs" onclick="closeSidebar()">
+      <span class="nav-icon">👑</span>
+      <span>Что делать сейчас</span>
+    </a>
+    <a class="nav-link" href="#maps" onclick="closeSidebar()">
+      <span class="nav-icon">🗺️</span>
+      <span>Карты наблюдения</span>
+      <span class="nav-count">5</span>
+    </a>
+    <a class="nav-link" href="#letters" onclick="closeSidebar()">
+      <span class="nav-icon">💌</span>
+      <span>Письма родителям</span>
+      <span class="nav-count">7</span>
+    </a>
+
+    <div class="nav-section-label">Дальше</div>
+    <a class="nav-link" href="#plan" onclick="closeSidebar()">
+      <span class="nav-icon">📅</span>
+      <span>План на октябрь</span>
+    </a>
+    <a class="nav-link" href="#vision" onclick="closeSidebar()">
+      <span class="nav-icon">🌱</span>
+      <span>Будущее системы</span>
+    </a>
+
+  </nav>
+</aside>
+
+<!-- ОСНОВНОЙ КОНТЕНТ -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">📊 Отчёт за сентябрь 2026</div>
+    <h1>Элиф: первый месяц работы системы</h1>
+    <p class="hero-sub">Что произошло, что требует внимания и как будет выглядеть результат через 3 месяца</p>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-label">Главная</div>
+    <h2 class="section-title">Общая картина</h2>
+    <p class="section-sub">Это отчёт для тех, кто хочет увидеть свою работу со стороны — не изнутри урока, а с точки зрения всей системы центра.</p>
+
+    <div class="card blue">
+      <h3>🎯 Зачем этот отчёт</h3>
+      <p>Мы собрали всё, что произошло за сентябрь, в одну страницу. Здесь:</p>
+      <ul>
+        <li><strong>Для Диляры Талятовны</strong> — что получилось, что требует внимания и куда двигаться дальше.</li>
+        <li><strong>Для педагогов</strong> — как ваши наблюдения превращаются в истории о детях, что видит система и как писать так, чтобы это работало.</li>
+        <li><strong>Для всех вместе</strong> — как выглядит центр глазами методологии: не оценки и посещаемость, а развитие каждого ребёнка.</li>
+      </ul>
+    </div>
+
+    <div class="card purple">
+      <h3>💡 Главное открытие месяца</h3>
+      <p>Педагоги пишут живые, содержательные наблюдения. Это не отписки. Именно они станут основой для персональных писем родителям — таких, которые родитель не забудет.</p>
+    </div>
+  </section>
+
+  <!-- WHY -->
+  <section id="why">
+    <div class="section-label">Понимание</div>
+    <h2 class="section-title">Как читать этот отчёт</h2>
+    <p class="section-sub">Разные разделы — для разных ролей. Можно читать целиком, а можно зайти в свою секцию.</p>
+
+    <div class="card plain">
+      <h3>👀 Три точки зрения на один центр</h3>
+      <p><strong>Педагог видит:</strong> урок, группу, конкретного ребёнка сегодня.</p>
+      <p><strong>Диляра видит:</strong> центр целиком — деньги, учеников, педагогов, расписание.</p>
+      <p><strong>Система видит:</strong> связи между всем этим — кто растёт, кто буксует, где нужна помощь.</p>
+      <p>Этот отчёт — <strong>третья точка зрения</strong>. Не вместо первых двух, а поверх них. Такой взгляд помогает понять, что на самом деле происходит в центре.</p>
+    </div>
+  </section>
+
+  <!-- NUMBERS -->
+  <section id="numbers">
+    <div class="section-label">Факты</div>
+    <h2 class="section-title">Цифры месяца</h2>
+    <p class="section-sub">Что накопилось в системе за сентябрь</p>
+
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-value">105</div>
+        <div class="stat-label">учеников в базе</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">90</div>
+        <div class="stat-label">семей</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value green">32</div>
+        <div class="stat-label">активных групп</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">9</div>
+        <div class="stat-label">педагогов</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value purple">89 300 ₽</div>
+        <div class="stat-label">платежей за месяц</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value orange">60+</div>
+        <div class="stat-label">наблюдений</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUCCESS -->
+  <section id="success">
+    <div class="section-label">Результаты</div>
+    <h2 class="section-title">Что работает отлично</h2>
+    <p class="section-sub">Шесть вещей, которые уже приносят ценность центру</p>
+
+    <div class="card green">
+      <div class="list-item">
+        <div class="list-icon">1️⃣</div>
+        <div class="list-body">
+          <strong>База из 105 учеников с семьями</strong>
+          <div class="list-note">Полная картина центра в одном месте — от телефона мамы до расписания.</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">2️⃣</div>
+        <div class="list-body">
+          <strong>Финансовый учёт ведётся</strong>
+          <div class="list-note">За месяц 89 300 ₽ платежей, все привязаны к семьям. Видно, кто заплатил, кто в просрочке.</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">3️⃣</div>
+        <div class="list-body">
+          <strong>Уроки создаются автоматически</strong>
+          <div class="list-note">На месяцы вперёд. Менеджер не должен вручную их плодить.</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">4️⃣</div>
+        <div class="list-body">
+          <strong>Система сама находит конфликты</strong>
+          <div class="list-note">Когда два педагога пересекаются в кабинете и времени — система подсвечивает.</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">5️⃣</div>
+        <div class="list-body">
+          <strong>60+ живых наблюдений</strong>
+          <div class="list-note">«Якуб стал увереннее», «Лия раскрепостилась к концу месяца». Это золото для отчётов родителям.</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">6️⃣</div>
+        <div class="list-body">
+          <strong>Журнал аудита ведётся</strong>
+          <div class="list-note">Каждое действие — создание, изменение, удаление — фиксируется.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEMS -->
+  <section id="problems">
+    <div class="section-label">Внимание</div>
+    <h2 class="section-title">Проблемы и их причины</h2>
+    <p class="section-sub">Разложено по уровням срочности. У каждой проблемы — понятная причина и способ её избежать в будущем.</p>
+
+    <h3 style="font-size: 20px; margin: 24px 0 14px; color: var(--red);">🔴 Срочно — эта неделя</h3>
+
+    <div class="card red">
+      <h3>1. Даты рождения у 8 учеников стоят «2026»</h3>
+      <p><strong>Что произошло:</strong> Платон Саламатин (4 класс) — дата 23.07.2026. То же у Ярослава и Маргариты Жатько, Гульсум Катаки, Екатерины и Виктора Чиковых.</p>
+      <p><strong>Причина:</strong> форма автоматически подставляет сегодняшнюю дату, если поле пустое.</p>
+      <p><strong>Как исправить:</strong> убрать автоподстановку; сделать поле обязательным; добавить проверку — дата не может быть в будущем и в текущем году для школьника.</p>
+    </div>
+
+    <div class="card red">
+      <h3>2. Платежи без даты «Оплачено до»</h3>
+      <p><strong>Что произошло:</strong> минимум 8 платежей записаны, но без срока продления.</p>
+      <p><strong>Причина:</strong> поле `paidUntil` не обязательное при создании платежа.</p>
+      <p><strong>Последствие:</strong> алерты о просрочке не срабатывают. Менеджер не видит должника.</p>
+      <p><strong>Как исправить:</strong> сделать поле обязательным; автоподставлять +30 дней от текущей даты; проверять раз в неделю.</p>
+    </div>
+
+    <div class="card red">
+      <h3>3. Дубли наблюдений</h3>
+      <p><strong>Что произошло:</strong> у Гульсум Катаки одна запись повторена 5 раз. У Мелек Сейдаметовой, Мирославы Артенюк, Вероники Мосеевской, Якуба Сахтары — по 2–4 дубля.</p>
+      <p><strong>Причина:</strong> кнопка «Сохранить» не блокируется после первого клика. При медленном интернете педагог нажимает несколько раз.</p>
+      <p><strong>Как исправить:</strong> блокировать кнопку после первого клика; дедупликация по «ученик + текст + время» в пределах 60 секунд.</p>
+    </div>
+
+    <div class="card red">
+      <h3>4. Дубли семей</h3>
+      <p><strong>Что произошло:</strong> семья Шелеповой Анны создана дважды с одинаковым телефоном.</p>
+      <p><strong>Причина:</strong> при создании новой семьи не проверяется, существует ли уже семья с таким телефоном.</p>
+      <p><strong>Как исправить:</strong> при создании семьи — проверка по телефону; предложить присоединиться к существующей; функция «Объединить семьи» в админке.</p>
+    </div>
+
+    <h3 style="font-size: 20px; margin: 30px 0 14px; color: #b38a00;">🟡 Важно — этот месяц</h3>
+
+    <div class="card yellow">
+      <h3>5. Посещаемость почти не отмечается</h3>
+      <p><strong>Что произошло:</strong> за сентябрь ~140 занятий, но в системе только 15 отметок.</p>
+      <p><strong>Причина:</strong> педагоги ведут учёт «на бумаге» по привычке. Отметка в системе воспринимается как дополнительная нагрузка.</p>
+      <p><strong>Последствие:</strong> не работает статистика пропусков и алерты о детях, которые давно не были.</p>
+      <p><strong>Как исправить:</strong> упростить отметку до 1 клика — «Отметить всех присутствующими» + правки исключений. Напоминание педагогу в конце занятия.</p>
+    </div>
+
+    <div class="card yellow">
+      <h3>6. Наблюдения только у 3 педагогов из 9</h3>
+      <p><strong>Что произошло:</strong> Диляра — 40 наблюдений, Февзие — 20, Лилия — 1. Остальные 6 педагогов — 0.</p>
+      <p><strong>Причина:</strong> не все педагоги понимают, зачем нужны наблюдения. Не видят ценности.</p>
+      <p><strong>Как исправить:</strong> показать педагогам, как их наблюдение превратилось в тёплое письмо родителю. Мотивация через результат.</p>
+    </div>
+
+    <div class="card yellow">
+      <h3>7. Наблюдения остаются в статусе «Черновик»</h3>
+      <p><strong>Что произошло:</strong> все 60+ наблюдений в черновиках, не опубликованы.</p>
+      <p><strong>Как исправить:</strong> сделать авто-публикацию при сохранении. Или напоминать в конце дня: «У вас 5 черновиков. Опубликовать?»</p>
+    </div>
+
+    <div class="card yellow">
+      <h3>8. Конфликты расписания</h3>
+      <p><strong>Что произошло:</strong> «Золотой финиш 1 и 2» — 8 конфликтов. «Арт Студия 1 и 2» — 7. «Логопед-Кувакин» — 2.</p>
+      <p><strong>Причина:</strong> два педагога занимают один кабинет в одно время. Система создаёт уроки, но не блокирует.</p>
+      <p><strong>Как исправить:</strong> блокировать создание слота при конфликте. Показывать мгновенную подсказку при выборе дня и времени.</p>
+    </div>
+
+    <div class="card yellow">
+      <h3>9. Тестовые данные в базе</h3>
+      <p><strong>Что произошло:</strong> остались ученики «Н», «Нн», «Ооторрпрр», кабинет «Кафе» с адресом «Кофе», уроки в 00:00, 03:00.</p>
+      <p><strong>Как исправить:</strong> удалить тестовые записи перед реальной эксплуатацией. Раз в месяц — отчёт «Подозрительные записи».</p>
+    </div>
+
+    <h3 style="font-size: 20px; margin: 30px 0 14px; color: #0d7ea8;">🟢 На перспективу</h3>
+
+    <div class="card teal">
+      <div class="list-item">
+        <div class="list-icon">📚</div>
+        <div class="list-body">
+          <strong>Справочник предметов пуст</strong>
+          <div class="list-note">Предметы в группах пишутся текстом с опечатками («Английсвий», «Математ ка»). Стоит заполнить справочник.</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">🔒</div>
+        <div class="list-body">
+          <strong>Функция «Удалить навсегда» доступна всем</strong>
+          <div class="list-note">Это противоречит принципу «никогда не удалять». Ограничить только для администратора.</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">📝</div>
+        <div class="list-body">
+          <strong>Ошибки распознавания речи</strong>
+          <div class="list-note">«Я хуп» вместо «Якуб», «Не Алька» вместо «Ниаль». Педагоги не редактируют текст после диктовки.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATA QUALITY -->
+  <section id="data-quality">
+    <div class="section-label">Методология</div>
+    <h2 class="section-title">Почему письма не по всем детям</h2>
+    <p class="section-sub">Это не потому что «не успели». Это осознанное решение, и вот почему.</p>
+
+    <div class="card purple">
+      <h3>Из 105 учеников — только 7 писем</h3>
+      <p>По остальным 98 детям данных либо нет, либо они настолько общие, что письмо превратится в формальную отписку: <em>«Ваш ребёнок старательный, продолжит заниматься с удовольствием»</em>.</p>
+      <p>Такое письмо не создаёт ценности. Наоборот — <strong>разрушает доверие</strong>. Родитель чувствует шаблон и делает вывод: «В центре о нас не думают».</p>
+    </div>
+
+    <div class="card">
+      <h3>Критерии отбора — почему именно эти 7</h3>
+      <div class="timeline">
+        <div class="timeline-item green">
+          <div class="timeline-date">Критерий 1</div>
+          <div class="timeline-text"><strong>Есть конкретные наблюдения.</strong> Педагог описал факты: что делал, как реагировал, что изменилось. Таких детей — ~25.</div>
+        </div>
+        <div class="timeline-item green">
+          <div class="timeline-date">Критерий 2</div>
+          <div class="timeline-text"><strong>Есть динамика.</strong> Видно движение: «было так → стало так». Таких — ~10.</div>
+        </div>
+        <div class="timeline-item green">
+          <div class="timeline-date">Критерий 3</div>
+          <div class="timeline-text"><strong>Есть фактура для истории.</strong> Цитаты, детали, живые метафоры. Таких — <strong>7 детей</strong>.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card orange">
+      <h3>Почему рекомендации не даны никому</h3>
+      <p>Рекомендации — самая опасная часть системы. Если они сделаны на основе одного-двух наблюдений, они превращаются в <strong>выдумку</strong>, которая может:</p>
+      <ul>
+        <li>напугать родителя («у моего ребёнка проблемы?»);</li>
+        <li>навредить ребёнку (педагог начнёт «корректировать» то, чего нет);</li>
+        <li>подорвать доверие к системе.</li>
+      </ul>
+      <p><strong>Рекомендации можно давать только когда есть:</strong></p>
+      <ul>
+        <li>минимум 3 наблюдения за разные дни (не подряд);</li>
+        <li>наблюдения от 2 разных педагогов (если ребёнок занимается в нескольких группах);</li>
+        <li>привязка каждого наблюдения к конкретной компетенции;</li>
+        <li>публикация — педагог сам уверен в записи.</li>
+      </ul>
+      <p>Сейчас <strong>ни один ребёнок не проходит все 4 критерия</strong>. Поэтому рекомендации не даны никому — это единственно правильное решение.</p>
+    </div>
+
+    <div class="card blue">
+      <h3>Наша цель — не 105 писем, а 105 настоящих писем</h3>
+      <p>Мы выбрали честный путь: <strong>сначала качество записей, потом количество писем</strong>. Через 2–3 месяца у каждой семьи будет письмо, построенное на живых наблюдениях. Это настоящая ценность, а не формальная рассылка.</p>
+    </div>
+  </section>
+
+  <!-- HOW TO WRITE -->
+  <section id="how-to-write">
+    <div class="section-label">Для педагогов</div>
+    <h2 class="section-title">Как писать наблюдения</h2>
+    <p class="section-sub">Простое правило: не оценка, а факт. Так ваши слова превращаются в живые истории, которые доходят до родителей.</p>
+
+    <div class="card">
+      <h3>Правило «Факт вместо оценки»</h3>
+      <div class="compare">
+        <div class="compare-box bad">
+          <span class="compare-label">❌ Плохо</span>
+          «Мальчик старательный.»
+        </div>
+        <div class="compare-box good">
+          <span class="compare-label">✅ Хорошо</span>
+          «Сегодня Якуб сам, без напоминания, выполнил все 5 заданий и поднял руку, чтобы ответить.»
+        </div>
+      </div>
+      <div class="compare">
+        <div class="compare-box bad">
+          <span class="compare-label">❌ Плохо</span>
+          «Девочка застенчивая.»
+        </div>
+        <div class="compare-box good">
+          <span class="compare-label">✅ Хорошо</span>
+          «Когда я спросила Айсель, она ответила очень тихо, но ответила — впервые за месяц.»
+        </div>
+      </div>
+      <p><strong>Почему это важно:</strong> факт можно проверить, обсудить с педагогом, показать родителю. Оценка — нет.</p>
+    </div>
+
+    <div class="card green">
+      <h3>Структура наблюдения — 3 элемента</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">1. Ситуация</div>
+          <div class="timeline-text">Что происходило на уроке.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2. Поведение ребёнка</div>
+          <div class="timeline-text">Что конкретно сделал или сказал.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">3. Компетенция</div>
+          <div class="timeline-text">Какая способность проявляется (из списка 5 компетенций).</div>
+        </div>
+      </div>
+      <p style="margin-top: 16px;"><strong>Пример правильно оформленной записи:</strong></p>
+      <p style="background: var(--gray-l); padding: 14px; border-radius: 12px; font-size: 15px; color: #333;">
+        <strong>Ситуация:</strong> групповая работа, делимся на пары для диалога.<br>
+        <strong>Поведение:</strong> Артём первым вызвался быть ведущим в паре, предложил партнёру свою идею. Когда партнёр ошибся, Артём не перебил, а подождал и подсказал.<br>
+        <strong>Компетенция:</strong> инициатива, эмпатия.
+      </p>
+      <p>Из такой записи письмо родителю пишется за минуту — там уже есть история.</p>
+    </div>
+
+    <div class="card orange">
+      <h3>Правила оформления</h3>
+      <ul>
+        <li><strong>Длина:</strong> 2–4 предложения. Не 200 слов, не одно слово.</li>
+        <li><strong>Время:</strong> сразу после урока, пока помнится.</li>
+        <li><strong>Редактирование:</strong> если использовалась диктовка — <strong>обязательно перечитать</strong> и поправить имена и слова.</li>
+        <li><strong>Публикация:</strong> сохранять сразу как «Опубликовано», не оставлять в черновиках.</li>
+        <li><strong>Дубли:</strong> сохранять один раз. Если интернет тормозит — нажать один раз и подождать.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- COMPETENCIES -->
+  <section id="competencies">
+    <div class="section-label">Методология</div>
+    <h2 class="section-title">5 компетенций центра</h2>
+    <p class="section-sub">Мы отслеживаем развитие каждого ребёнка по пяти базовым способностям. При создании наблюдения педагог отмечает 1–2 из них.</p>
+
+    <div class="comp-grid">
+      <div class="comp-item">
+        <span class="comp-emoji">💬</span>
+        <div class="comp-name">Коммуникация</div>
+        <div class="comp-desc">Как ребёнок говорит, слушает, выражает мысли.</div>
+      </div>
+      <div class="comp-item">
+        <span class="comp-emoji">🧭</span>
+        <div class="comp-name">Самостоятельность</div>
+        <div class="comp-desc">Делает ли сам, без напоминания.</div>
+      </div>
+      <div class="comp-item">
+        <span class="comp-emoji">🚀</span>
+        <div class="comp-name">Инициатива</div>
+        <div class="comp-desc">Предлагает идеи, берёт на себя роль.</div>
+      </div>
+      <div class="comp-item">
+        <span class="comp-emoji">💛</span>
+        <div class="comp-name">Эмпатия</div>
+        <div class="comp-desc">Замечает других, помогает, поддерживает.</div>
+      </div>
+      <div class="comp-item">
+        <span class="comp-emoji">🔥</span>
+        <div class="comp-name">Вовлечённость</div>
+        <div class="comp-desc">Как включается в занятие и реагирует на сложности.</div>
+      </div>
+    </div>
+
+    <div class="card teal">
+      <h3>Зачем это нужно</h3>
+      <ul>
+        <li><strong>Через 3 месяца</strong> можно будет показать родителю: «У Артёма растёт самостоятельность и инициатива» — конкретно, а не общими словами.</li>
+        <li><strong>ИИ-обработка</strong> сможет анализировать: «У Артёма 8 наблюдений по инициативе, 2 по эмпатии».</li>
+        <li><strong>Рекомендации</strong> станут обоснованными: «В октябре работали над инициативой, в ноябре стоит добавить эмпатию».</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- TEACHER RECS -->
+  <section id="teacher-recs">
+    <div class="section-label">Для педагогов</div>
+    <h2 class="section-title">Задание на октябрь</h2>
+    <p class="section-sub">Три простых шага — и через месяц у нас будут настоящие письма и честные карты развития</p>
+
+    <div class="card blue">
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">Шаг 1 · Каждый урок</div>
+          <div class="timeline-text">Отметить посещаемость в системе. Это 10 секунд. Без этого мы не видим, кто давно не был и кому нужна поддержка.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Шаг 2 · После урока</div>
+          <div class="timeline-text">Записать 1–2 наблюдения на детей, кого отметили сегодня. Не «старательный», а <strong>что именно делал</strong>. Отметить компетенцию.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Шаг 3 · Раз в месяц</div>
+          <div class="timeline-text">Собрать по каждому ребёнку <strong>минимум 3 наблюдения</strong>. Не больше, но регулярно. Обязательно <strong>опубликовать</strong>, а не оставить в черновике.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card green">
+      <h3>Что произойдёт через месяц</h3>
+      <ul>
+        <li>У 50–70 детей наберётся достаточно материала для писем.</li>
+        <li>По 10–15 детям появится <strong>честная динамика</strong> — было так, стало так.</li>
+        <li>Родители получат персональные письма. И это будет не формальная рассылка, а <strong>живые истории их детей</strong>.</li>
+        <li>Система начнёт работать как задумано — накапливать историю развития.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- OWNER RECS -->
+  <section id="owner-recs">
+    <div class="section-label">Для Диляры Талятовны</div>
+    <h2 class="section-title">Что делать прямо сейчас</h2>
+    <p class="section-sub">Три шага на ближайшие две недели</p>
+
+    <div class="card red">
+      <h3>Шаг 1 · Зачистка данных <span style="font-size: 14px; font-weight: 500; color: var(--text2);">≈ 2 часа</span></h3>
+      <div class="timeline">
+        <div class="timeline-item red">
+          <div class="timeline-date">Сегодня</div>
+          <div class="timeline-text">Исправить даты рождения у 8 учеников.</div>
+        </div>
+        <div class="timeline-item red">
+          <div class="timeline-date">Сегодня</div>
+          <div class="timeline-text">Дооформить 8 платежей без «Оплачено до».</div>
+        </div>
+        <div class="timeline-item orange">
+          <div class="timeline-date">Завтра</div>
+          <div class="timeline-text">Удалить дубли семей и наблюдений.</div>
+        </div>
+        <div class="timeline-item orange">
+          <div class="timeline-date">Завтра</div>
+          <div class="timeline-text">Убрать тестовые записи («Н», «Кафе»).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card orange">
+      <h3>Шаг 2 · Настройка дисциплины <span style="font-size: 14px; font-weight: 500; color: var(--text2);">1 неделя</span></h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">Понедельник</div>
+          <div class="timeline-text">На встрече с педагогами объяснить: 10 секунд на отметку посещаемости после урока.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Вторник</div>
+          <div class="timeline-text">Показать педагогам пример правильно оформленного наблюдения (факт вместо оценки).</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Среда</div>
+          <div class="timeline-text">Разобрать конфликты расписания — «Золотой финиш», «Арт Студия», «Логопед-Кувакин».</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">Четверг</div>
+          <div class="timeline-text">Ввести 5 компетенций в систему: педагог при создании наблюдения отмечает 1–2 из них.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card green">
+      <h3>Шаг 3 · Первые письма родителям <span style="font-size: 14px; font-weight: 500; color: var(--text2);">1 неделя</span></h3>
+      <div class="timeline">
+        <div class="timeline-item green">
+          <div class="timeline-date">В течение недели</div>
+          <div class="timeline-text">Отправить 7 писем (в разделе ниже). Скопировать и вставить в WhatsApp или Telegram.</div>
+        </div>
+        <div class="timeline-item green">
+          <div class="timeline-date">После отправки</div>
+          <div class="timeline-text">Собрать обратную связь: как отреагировали родители. Это покажет педагогам, что их наблюдения действительно работают.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAPS -->
+  <section id="maps">
+    <div class="section-label">Методология</div>
+    <h2 class="section-title">Карты наблюдения</h2>
+    <p class="section-sub">Не рекомендации, а вопросы и направления для педагогов. Потому что по 1–2 наблюдениям нельзя ставить диагнозы. Можно только <strong>смотреть дальше</strong>.</p>
+
+    <div class="card purple">
+      <h3>🌱 Платон Саламатин · 4 класс</h3>
+      <p><strong>Что видим:</strong></p>
+      <ul>
+        <li>«Скучно на занятиях с детьми с меньшим уровнем знания»</li>
+        <li>«Делает глупые ошибки, хотя правила знает»</li>
+        <li>«Спешит ответить и путается»</li>
+        <li>«В спокойном состоянии говорит верно»</li>
+      </ul>
+      <p><strong>Что пока непонятно:</strong></p>
+      <ul>
+        <li>Скука — это про уровень группы или про конкретный материал?</li>
+        <li>Спешка — это соревновательность или тревожность?</li>
+        <li>Как Платон ведёт себя, когда не первый?</li>
+      </ul>
+      <p><strong>Что понаблюдать в октябре:</strong></p>
+      <ol>
+        <li>Дать Платону отдельное задание на 10 минут — как изменится вовлечённость?</li>
+        <li>Отметить, в каких ситуациях он не спешит и не делает ошибок.</li>
+        <li>Записать, как он реагирует на ошибки других детей.</li>
+      </ol>
+    </div>
+
+    <div class="card purple">
+      <h3>🌱 Ярослав Жатько · 4 класс</h3>
+      <p><strong>Что видим:</strong></p>
+      <ul>
+        <li>«Очень тяжело включается в работу»</li>
+        <li>«Требует постоянного внимания и контроля»</li>
+        <li>«Мгновенно отвлекается, играется листиками»</li>
+        <li>«Не выполняет домашнее задание, не учит слова»</li>
+        <li>«Остро реагирует на замечания сестры»</li>
+      </ul>
+      <p><strong>Что понаблюдать в октябре:</strong></p>
+      <ol>
+        <li>Дать задание, где он может быть успешен — что изменится?</li>
+        <li>Проверить реакцию на разные форматы: карточки, игры, видео.</li>
+        <li>Отследить, что помогает включаться быстрее (музыка, картинки, движение).</li>
+      </ol>
+    </div>
+
+    <div class="card purple">
+      <h3>🌱 Маргарита Жатько · 4 класс</h3>
+      <p><strong>Что видим:</strong></p>
+      <ul>
+        <li>«Отвлекается на других, следит за Ярославом»</li>
+        <li>«Не уверена в себе»</li>
+        <li>«Проблески понимания возникли»</li>
+        <li>«Стала отвечать лучше, чем в прошлые разы»</li>
+      </ul>
+      <p><strong>Что понаблюдать в октябре:</strong></p>
+      <ol>
+        <li>Посадить Маргариту отдельно от Ярослава — изменится ли внимание?</li>
+        <li>Найти занятие, где она может быть лидером.</li>
+        <li>Отследить, какие задания вызывают у неё искренний интерес.</li>
+      </ol>
+    </div>
+
+    <div class="card purple">
+      <h3>🌱 Есения Маснуха · 7 класс</h3>
+      <p><strong>Что видим:</strong></p>
+      <ul>
+        <li>«Не прислушивается к рекомендациям»</li>
+        <li>«Не хочет увеличивать амплитуду предложений»</li>
+        <li>«Хорошо отвечает, но скупо»</li>
+        <li>«Долго подключается»</li>
+      </ul>
+      <p><strong>Что понаблюдать в октябре:</strong></p>
+      <ol>
+        <li>Спросить Есению, что ей интересно — какие темы её зажигают?</li>
+        <li>Дать задание на её тему — изменится ли объём высказывания?</li>
+        <li>Отметить, когда она сама проявляет инициативу.</li>
+      </ol>
+    </div>
+
+    <div class="card purple">
+      <h3>🌱 Гульсум Катаки · 1 класс</h3>
+      <p><strong>Что видим:</strong></p>
+      <ul>
+        <li>«Очень активная, подвижная»</li>
+        <li>«Работаем над дисциплиной и поведением»</li>
+        <li>«Отвечает хорошо и быстро»</li>
+        <li>«Нет трудностей с пониманием и письмом»</li>
+      </ul>
+      <p><strong>Что понаблюдать в октябре:</strong></p>
+      <ol>
+        <li>Отследить ситуации, когда Гульсум сама контролирует поведение.</li>
+        <li>Проверить реакцию на разные форматы дисциплины (игра, договор, роли).</li>
+        <li>Записать, что помогает ей переключаться на задание.</li>
+      </ol>
+    </div>
+
+    <div class="card red">
+      <h3>Чего делать НЕЛЬЗЯ</h3>
+      <ul>
+        <li><strong>Психологические рекомендации</strong> — «тревожность, к психологу» — это не наша компетенция.</li>
+        <li><strong>Ярлыки</strong> — «ленивая», «гиперактивный» — наносят вред и закрывают путь к пониманию.</li>
+        <li><strong>Обобщения по 1 наблюдению</strong> — это может быть просто неудачный день.</li>
+        <li><strong>Сравнения между детьми</strong> — разрушают отношения и искажают реальность.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- LETTERS -->
+  <section id="letters">
+    <div class="section-label">Готовое к отправке</div>
+    <h2 class="section-title">Письма родителям</h2>
+    <p class="section-sub">7 историй сентября. Нажмите «Скопировать» и вставьте в WhatsApp, Telegram или SMS.</p>
+
+    <!-- LETTER 1 -->
+    <div class="letter">
+      <div class="letter-header">
+        <div>
+          <div class="letter-title">💌 Якуб Сахтара</div>
+          <div class="letter-reason">История роста уверенности</div>
+        </div>
+        <button class="copy-btn" onclick="copyLetter(this, 'letter1')">📋 Скопировать</button>
+      </div>
+      <div class="letter-text" id="letter1">Здравствуйте, уважаемые родители Якуба!
+
+Хочу поделиться с вами радостным наблюдением за первый месяц занятий.
+
+Якуб — удивительно старательный и внимательный мальчик. Все занятия он работает усердно, как маленькая пчёлка: никогда не отвлекается, всегда выполняет задания до конца. Когда я что-то объясняю, он смотрит мне в глаза — чувствуется, что он по-настоящему включён в процесс.
+
+Особенно приятно наблюдать, как Якуб раскрывается. На первых занятиях он очень стеснялся и смущался. Но уже к концу месяца стал заметно увереннее — поднимает руку, отвечает, активно участвует.
+
+Он очень любит музыкальные паузы: танцует, поёт, искренне радуется. Это даёт ему возможность раскрыться ещё больше.
+
+Якуб — замечательный ребёнок с большим желанием учиться. Мы продолжим поддерживать его и помогать ему чувствовать себя уверенно в группе. Спасибо, что доверяете нам!
+
+С уважением,
+Февзие Аблякимовна</div>
+      <div class="letter-sign">Педагог: Февзие Аблякимовна · Группа: Золотой финиш 1</div>
+    </div>
+
+    <!-- LETTER 2 -->
+    <div class="letter">
+      <div class="letter-header">
+        <div>
+          <div class="letter-title">💌 Мелек Сейдаметова</div>
+          <div class="letter-reason">Преодоление застенчивости</div>
+        </div>
+        <button class="copy-btn" onclick="copyLetter(this, 'letter2')">📋 Скопировать</button>
+      </div>
+      <div class="letter-text" id="letter2">Здравствуйте, уважаемые родители Мелек!
+
+Хочу рассказать вам о том, как прошёл первый месяц занятий у Мелек — и это действительно приятные новости.
+
+Мелек — очень спокойная и застенчивая девочка. На первых занятиях она боялась отвечать, часто молчала, стеснялась переспросить, если что-то было непонятно. Но при этом она всегда работала — как маленькая пчёлка: все задания выполняла аккуратно, ничего не пропускала.
+
+И вот к концу месяца мы увидели чудесные изменения. Мелек начала поднимать руку, отвечать, перестала стесняться. Она стала более активной и раскрепощённой в группе. Это уже большое достижение для неё!
+
+Для нас особенно ценно, что Мелек сохраняет свою старательность и одновременно учится быть смелее. Мы продолжим мягко поддерживать её в этом.
+
+Спасибо за вашего чудесного ребёнка!
+
+С уважением,
+Февзие Аблякимовна</div>
+      <div class="letter-sign">Педагог: Февзие Аблякимовна · Группа: Золотой финиш 2</div>
+    </div>
+
+    <!-- LETTER 3 -->
+    <div class="letter">
+      <div class="letter-header">
+        <div>
+          <div class="letter-title">💌 Айсель Сулейманова</div>
+          <div class="letter-reason">Первые ответы у доски</div>
+        </div>
+        <button class="copy-btn" onclick="copyLetter(this, 'letter3')">📋 Скопировать</button>
+      </div>
+      <div class="letter-text" id="letter3">Здравствуйте, уважаемые родители Айсель!
+
+Хочу поделиться с вами важным и очень тёплым наблюдением за этот месяц.
+
+Айсель — застенчивая, спокойная, скромная девочка. На уроках она старательно всё пишет, выполняет все задания, слушает очень внимательно. Но отвечать стеснялась — когда что-то спрашиваешь, она часто отмалчивалась.
+
+И вот на последних двух занятиях произошло то, чего мы все ждали: Айсель начала отвечать! Она выходила к доске, и я наконец услышала её голос. Для неё это огромный шаг, и мы очень рады этому.
+
+Хочу вас заверить: Айсель всё знает, она просто была очень стеснительной. Теперь её уверенность растёт, и я вижу, что она сама рада этому.
+
+Продолжим работать в этом направлении. Спасибо, что доверяете нам!
+
+С уважением,
+Февзие Аблякимовна</div>
+      <div class="letter-sign">Педагог: Февзие Аблякимовна · Группа: Золотой финиш 1</div>
+    </div>
+
+    <!-- LETTER 4 -->
+    <div class="letter">
+      <div class="letter-header">
+        <div>
+          <div class="letter-title">💌 Вероника Мосеевская</div>
+          <div class="letter-reason">Раскрытие через музыку</div>
+        </div>
+        <button class="copy-btn" onclick="copyLetter(this, 'letter4')">📋 Скопировать</button>
+      </div>
+      <div class="letter-text" id="letter4">Здравствуйте, уважаемые родители Вероники!
+
+Хочу рассказать вам о том, как Вероника провела первый месяц занятий.
+
+Вероника — очень скромный, застенчивый и стеснительный ребёнок. Но при этом она очень активно работает на уроке: хоть и молчит, всё выполняет старательно, ничего не пропускает. Видно, что она многое знает — просто стесняется показывать.
+
+И в последнее время мы заметили чудесные перемены. Вероника стала улыбаться. У неё появился интерес и нет прежнего страха. Особенно ей нравятся музыкальные разминки — когда мы танцуем и поём, она раскрывается, становится весёлой и живой.
+
+Так, шаг за шагом, через музыку и игру, Вероника раскрывается. Это очень тёплый и радостный процесс, и мы рады быть его частью.
+
+Спасибо за вашу замечательную девочку!
+
+С уважением,
+Февзие Аблякимовна</div>
+      <div class="letter-sign">Педагог: Февзие Аблякимовна · Группа: Золотой финиш 2</div>
+    </div>
+
+    <!-- LETTER 5 -->
+    <div class="letter">
+      <div class="letter-header">
+        <div>
+          <div class="letter-title">💌 Мухаммед Канаков</div>
+          <div class="letter-reason">От молчания к первым предложениям</div>
+        </div>
+        <button class="copy-btn" onclick="copyLetter(this, 'letter5')">📋 Скопировать</button>
+      </div>
+      <div class="letter-text" id="letter5">Здравствуйте, уважаемые родители Мухаммеда!
+
+Хочу поделиться с вами важным прогрессом, который мы наблюдаем у Мухаммеда.
+
+Летом Мухаммеду было очень сложно — он не выходил на контакт, почти не отвечал, каждое слово приходилось буквально вытягивать. Мы продолжали работать с ним мягко и терпеливо.
+
+И в сентябре произошёл настоящий прорыв. Мухаммед начал чаще отвечать, стал составлять предложения — и устно, и письменно. Пока медленнее, чем другие дети, материал даётся ему сложнее, но он делает это! У него появилось желание работать — и это самое важное.
+
+Я вижу в нём большой потенциал и искренне радуюсь вместе с ним каждому маленькому шагу. Спасибо, что поддерживаете его дома.
+
+С уважением,
+Диляра Талятовна</div>
+      <div class="letter-sign">Педагог: Диляра Талятовна · Группа: 2 Продвинутый</div>
+    </div>
+
+    <!-- LETTER 6 -->
+    <div class="letter">
+      <div class="letter-header">
+        <div>
+          <div class="letter-title">💌 Мерьем Буджурова</div>
+          <div class="letter-reason">От хаоса к дисциплине</div>
+        </div>
+        <button class="copy-btn" onclick="copyLetter(this, 'letter6')">📋 Скопировать</button>
+      </div>
+      <div class="letter-text" id="letter6">Здравствуйте, уважаемые родители Мерьем!
+
+Хочу рассказать вам о замечательных изменениях, которые произошли с Мерьем за первый месяц.
+
+На первых занятиях Мерьем было немного сложно в группе — она громко разговаривала, иногда мешала другим детям. Это нормально для адаптации, и мы работали с ней мягко.
+
+И вот за месяц произошли удивительные перемены. Мерьем стала дисциплинированной и спокойной. Она спокойно выполняет задания, аккуратно прописывает всё, отвечает на уроках. Иногда не успевает всё сделать, потому что работает тщательно, — но видно, что она очень старается.
+
+Мерьем — умная девочка, и это заметно во всём. Мы очень рады, что она так быстро адаптировалась к группе.
+
+Спасибо за ваше доверие!
+
+С уважением,
+Февзие Аблякимовна</div>
+      <div class="letter-sign">Педагог: Февзие Аблякимовна · Группа: Золотой финиш 2</div>
+    </div>
+
+    <!-- LETTER 7 -->
+    <div class="letter">
+      <div class="letter-header">
+        <div>
+          <div class="letter-title">💌 Мирослава Артенюк</div>
+          <div class="letter-reason">Яркая и активная ученица</div>
+        </div>
+        <button class="copy-btn" onclick="copyLetter(this, 'letter7')">📋 Скопировать</button>
+      </div>
+      <div class="letter-text" id="letter7">Здравствуйте, уважаемые родители Мирославы!
+
+С большим удовольствием хочу рассказать вам о том, как Мирослава провела первый месяц занятий.
+
+Мирослава — прекрасная, внимательная и очень старательная девочка. На уроках она всё выполняет быстро и правильно, всегда поднимает руку, всегда отвечает на вопросы. Она очень активная и жизнерадостная.
+
+На музыкальных физминутках она особенно раскрывается: танцует, поёт, веселится вместе со всеми. Про таких детей говорят: «Она как будто на год старше остальных» — настолько она собранная и активная.
+
+Мирослава — украшение группы. Работать с ней в удовольствие, и мы хотим, чтобы вы это знали.
+
+Спасибо, что доверяете нам свою дочь!
+
+С уважением,
+Февзие Аблякимовна</div>
+      <div class="letter-sign">Педагог: Февзие Аблякимовна · Группа: Золотой финиш 1</div>
+    </div>
+  </section>
+
+  <!-- PLAN -->
+  <section id="plan">
+    <div class="section-label">Дальше</div>
+    <h2 class="section-title">План на октябрь</h2>
+    <p class="section-sub">Шесть конкретных задач, чтобы система заработала на полную мощность</p>
+
+    <div class="card">
+      <div class="list-item">
+        <div class="list-icon">1️⃣</div>
+        <div class="list-body">
+          <strong>Посещаемость — 100%</strong>
+          <div class="list-note">Каждый урок отмечается в системе. 10 секунд на педагога, но полная статистика пропусков.</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">2️⃣</div>
+        <div class="list-body">
+          <strong>Наблюдения от всех педагогов</strong>
+          <div class="list-note">Не только от Диляры и Февзие, но и от Лилии, Марии, Татьяны, Сусанны.</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">3️⃣</div>
+        <div class="list-body">
+          <strong>Чистые данные</strong>
+          <div class="list-note">Даты рождения, дубли, тестовые записи — всё исправлено.</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">4️⃣</div>
+        <div class="list-body">
+          <strong>Разобраны конфликты расписания</strong>
+          <div class="list-note">Ни одного урока со статусом «конфликт».</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">5️⃣</div>
+        <div class="list-body">
+          <strong>Отправлены 7 первых писем родителям</strong>
+          <div class="list-note">Якуб, Мелек, Айсель, Вероника, Мухаммед, Мерьем, Мирослава.</div>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon">6️⃣</div>
+        <div class="list-body">
+          <strong>Введены 5 компетенций</strong>
+          <div class="list-note">Каждое наблюдение привязано к 1–2 компетенциям. Это откроет путь к ИИ-обработке.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VISION -->
+  <section id="vision">
+    <div class="section-label">Дальше</div>
+    <h2 class="section-title">Как это будет работать дальше</h2>
+    <p class="section-sub">Через 3 месяца, через год и главная ценность всего проекта</p>
+
+    <div class="card blue">
+      <h3>📅 Через 3 месяца — декабрь 2026</h3>
+      <ul>
+        <li>У каждого ребёнка накоплено 15–20 наблюдений.</li>
+        <li>Родители получают персональное письмо каждый месяц.</li>
+        <li>Педагоги работают в системе автоматически, без напоминаний.</li>
+        <li>Видна динамика: кто растёт, кто буксует, кому нужна помощь.</li>
+      </ul>
+    </div>
+
+    <div class="card purple">
+      <h3>🌱 Через год — сентябрь 2027</h3>
+      <ul>
+        <li>У каждого ребёнка — история развития за год.</li>
+        <li>ИИ автоматически обрабатывает наблюдения и формирует отчёты.</li>
+        <li>Родители видят не оценки, а живые истории о своём ребёнке.</li>
+        <li>Центр становится единственным в городе, который работает по методологии развития.</li>
+        <li>Система тиражируется на другие центры как готовый продукт.</li>
+      </ul>
+    </div>
+
+    <div class="card green">
+      <h3>🎯 Главная ценность</h3>
+      <p>Родители платят не за уроки. Они платят за то, что их ребёнок развивается — и они это видят. Когда мама получает тёплое письмо с историей своего ребёнка, она остаётся с вами надолго.</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p><strong>Элиф · Отчёт за сентябрь 2026</strong></p>
+    <p>Период: 1–30 сентября · Экспорт: 5 октября 2026</p>
+    <p style="margin-top: 16px;">Отчёт сформирован автоматически на основе данных системы «Метод X»</p>
+  </div>
+
+</main>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✓ Скопировано</div>
+
+<script>
+  // === БОКОВАЯ ШТОРКА ===
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const burger = document.getElementById('burger');
+
+  function toggleSidebar() {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+    burger.classList.toggle('open');
+    document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+    burger.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // === АКТИВНЫЙ ПУНКТ МЕНЮ ПРИ СКРОЛЛЕ ===
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(section => {
+      const top = section.offsetTop - 100;
+      if (window.scrollY >= top) current = section.id;
+    });
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+    });
+  }, { passive: true });
+
+  // === КОПИРОВАНИЕ ПИСЕМ ===
+  function copyLetter(btn, id) {
+    const el = document.getElementById(id);
+    const text = el.innerText || el.textContent;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => showCopied(btn))
+        .catch(() => fallbackCopy(text, btn));
+    } else {
+      fallbackCopy(text, btn);
+    }
+  }
+
+  function fallbackCopy(text, btn) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      showCopied(btn);
+    } catch (e) {
+      alert('Не удалось скопировать. Выделите текст вручную.');
+    }
+    document.body.removeChild(ta);
+  }
+
+  function showCopied(btn) {
+    const original = btn.innerHTML;
+    btn.innerHTML = '✓ Скопировано';
+    btn.classList.add('copied');
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => {
+      btn.innerHTML = original;
+      btn.classList.remove('copied');
+      toast.classList.remove('show');
+    }, 2000);
+  }
+
+  // === ESC ЗАКРЫВАЕТ ШТОРКУ ===
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
+  });
+
+  // === АКТИВНЫЙ ПУНКТ МЕНЮ ПРИ КЛИКЕ ===
+  navLinks.forEach(link => {
+    link.addEventListener('click', function() {
+      navLinks.forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>
