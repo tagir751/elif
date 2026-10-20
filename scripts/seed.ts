@@ -274,6 +274,29 @@ async function seed() {
     await prisma.auditLog.upsert({ where: { id: aid }, update: {}, create: { id: aid, ...auditActions[i] } }).catch(() => {})
   }
 
+  // ── Рекомендации (демо для лампочек) ──
+  const demoRecs = [
+    // Учитель-рекомендация для первого урока английского (engA1, учитель t2)
+    { teacherId: t2.id, studentId: null, lessonId: null, text: '🧠 ИИ: Обратите внимание на речевую активность группы. Рекомендуется увеличить время парной работы.', source: 'AI' },
+    // Ученик Артём Смирнов (s-smir-1) — в группе engA1
+    { teacherId: null, studentId: 's-smir-1', lessonId: null, text: '💡 Артём: отличный прогресс в говорении, предложите ему более сложные задания.', source: 'AI' },
+    // Ученик Анна Васильева (s-vasi-1) — в группе engA1
+    { teacherId: null, studentId: 's-vasi-1', lessonId: null, text: '💡 Анна: пропустила 2 занятия, рекомендовано повторить лексику.', source: 'AI' },
+    // Ученик Дмитрий Новиков (s-novi-1) — в группе engA1
+    { teacherId: null, studentId: 's-novi-1', lessonId: null, text: '💡 Дмитрий: стабильно высокий результат, предложите проектную работу.', source: 'AI' },
+    // Ещё пару для других групп
+    { teacherId: null, studentId: 's-ivan-1', lessonId: null, text: '💡 Иван: нуждается в поддержке по дробям.', source: 'AI' },
+    { teacherId: null, studentId: 's-petr-1', lessonId: null, text: '💡 Пётр: готов к олимпиадным задачам по математике.', source: 'AI' },
+  ]
+  for (let i = 0; i < demoRecs.length; i++) {
+    const rid = `rec-${i}`
+    const exists = await prisma.recommendation.findUnique({ where: { id: rid } }).catch(() => null)
+    if (exists) continue
+    await prisma.recommendation.create({
+      data: { id: rid, ...demoRecs[i], isArchived: false },
+    }).catch(() => {})
+  }
+
   console.log('✅ Seed completed — 2 months of data')
   console.log('  Admin:    admin@elif.ru / admin123')
   console.log('  Manager:  manager@elif.ru / manager123')

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>Менеджер — Ученики</title>
+  <style>
+    /* ===== ДИЗАЙН-ПЕРЕМЕННЫЕ ===== */
+    :root {
+      --bg: #f5f5f7;
+      --card-bg: #ffffff;
+      --text: #1d1d1f;
+      --text-secondary: #86868b;
+      --text-tertiary: #aeaeb2;
+      --green: #34c759;
+      --green-light: #e8f8ed;
+      --yellow: #ffcc00;
+      --yellow-light: #fff9e6;
+      --orange: #ff9500;
+      --orange-light: #fff3e6;
+      --red: #ff3b30;
+      --red-light: #ffebea;
+      --gray: #e5e5ea;
+      --gray-light: #f2f2f7;
+      --blue: #007aff;
+      --blue-light: #e8f2ff;
+      --separator: #e5e5ea;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 24px;
+      --transition-fast: 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .app-container { width: 100%; max-width: 480px; min-height: 100vh; background: var(--bg); display: flex; flex-direction: column; position: relative; overflow-x: hidden; }
+    .app-content { flex: 1; overflow-y: auto; padding: 20px 20px 100px 20px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .app-content::-webkit-scrollbar { display: none; }
+
+    /* Нижний таб-бар */
+    .tab-bar {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px; background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(0,0,0,0.05);
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 8px 0 20px 0; z-index: 50;
+    }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer; }
+    .tab-item.active { color: var(--blue); }
+    .tab-item .icon { font-size: 24px; }
+
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section-header h2 { font-size: 32px; font-weight: 700; }
+
+    /* Строка поиска и сортировки */
+    .search-sort-row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; }
+    .search-input { flex: 1; padding: 14px 18px; border-radius: 16px; border: 1px solid var(--separator); background: var(--card-bg); font-size: 18px; outline: none; }
+    .sort-select { padding: 14px 18px; border-radius: 16px; border: 1px solid var(--separator); background: var(--card-bg); font-size: 18px; font-weight: 500; width: auto; min-width: 130px; }
+
+    .add-btn { background: var(--blue); color: white; border: none; border-radius: 24px; padding: 14px 28px; font-weight: 600; font-size: 17px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,122,255,0.25); }
+
+    /* Карточка ученика в списке */
+    .student-card {
+      background: var(--card-bg); border-radius: var(--radius-md); padding: 18px; margin-bottom: 10px;
+      box-shadow: var(--shadow-sm); cursor: pointer; transition: all var(--transition-fast);
+      display: flex; align-items: center; gap: 16px; border-left: 6px solid var(--blue);
+    }
+    .student-card:active { transform: scale(0.98); }
+    .student-avatar {
+      width: 56px; height: 56px; border-radius: 50%; background: var(--blue-light); color: var(--blue);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 24px;
+      position: relative;
+    }
+    .indicator-dot {
+      position: absolute; bottom: -2px; right: -2px; width: 16px; height: 16px; border-radius: 50%;
+      background: var(--gray); border: 2px solid white;
+    }
+    .student-info { flex: 1; }
+    .student-name { font-weight: 650; font-size: 20px; display: flex; align-items: center; gap: 6px; }
+    .student-meta { font-size: 15px; color: var(--text-secondary); margin-top: 4px; }
+    .student-stats { display: flex; gap: 8px; margin-top: 6px; }
+    .stat-badge {
+      display: flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 500;
+      background: var(--gray-light); padding: 4px 10px; border-radius: 12px;
+    }
+
+    /* Детальный экран ученика (полноэкранный) */
+    .student-detail-screen {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px; height: 100vh; background: var(--bg); z-index: 200;
+      display: flex; flex-direction: column; animation: slideInRight 0.35s ease;
+      overflow-y: auto;
+    }
+    .student-detail-screen.hidden { display: none; }
+    @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+    .detail-header {
+      display: flex; align-items: center; gap: 12px; padding: 20px;
+      background: var(--card-bg); border-bottom: 1px solid var(--separator);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .back-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--gray-light); border: none; cursor: pointer; font-size: 28px; color: var(--blue); display: flex; align-items: center; justify-content: center; }
+    .detail-summary { padding: 20px; background: var(--card-bg); margin: 20px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+    .detail-summary h3 { font-size: 26px; font-weight: 700; }
+    .groups { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+    .group-chip { background: var(--blue-light); color: var(--blue); padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 16px; }
+    .next-lesson { font-size: 17px; color: var(--text-secondary); margin-top: 10px; }
+    .stats-row { display: flex; gap: 14px; margin-top: 14px; font-size: 16px; }
+    .stat-item { display: flex; align-items: center; gap: 6px; font-weight: 500; }
+
+    .schedule-btn {
+      margin: 0 20px 12px; padding: 14px; background: var(--blue-light); color: var(--blue);
+      border-radius: 16px; font-weight: 700; font-size: 18px; text-align: center; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    .detail-tabs { display: flex; gap: 6px; padding: 0 20px; margin-top: 8px; flex-wrap: wrap; }
+    .detail-tab { padding: 12px 18px; border-radius: 24px; font-weight: 600; font-size: 16px; background: var(--gray-light); cursor: pointer; transition: all 0.2s; }
+    .detail-tab.active { background: var(--blue); color: white; }
+    .tab-content { display: none; padding: 20px; }
+    .tab-content.active { display: block; }
+
+    .timeline-item { display: flex; gap: 12px; margin-bottom: 16px; }
+    .timeline-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--blue); margin-top: 6px; flex-shrink: 0; }
+    .timeline-text { flex: 1; font-size: 16px; }
+    .timeline-date { font-size: 14px; color: var(--text-secondary); }
+
+    .portrait-block { background: var(--card-bg); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 12px; font-size: 16px; }
+    .portrait-block h4 { margin-bottom: 8px; }
+
+    /* Модальные окна */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.3); backdrop-filter: blur(4px);
+      z-index: 300; display: flex; align-items: center; justify-content: center;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-sheet {
+      background: white; width: 90%; max-width: 400px; border-radius: 24px; padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: popIn 0.3s ease;
+    }
+    @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-sheet input, .modal-sheet select { width: 100%; padding: 16px; border-radius: 16px; border: 1px solid var(--separator); font-size: 18px; margin-bottom: 12px; background: var(--gray-light); }
+    .modal-sheet label { font-size: 16px; font-weight: 500; margin-bottom: 6px; display: block; }
+    .btn { background: var(--blue); color: white; border: none; border-radius: 24px; padding: 14px 28px; font-weight: 600; font-size: 17px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-secondary { background: var(--gray-light); color: var(--text); }
+    .btn-block { width: 100%; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+  <!-- Нижний таб-бар -->
+  <div class="tab-bar">
+    <div class="tab-item" data-tab="today" onclick="switchTab('today')"><span class="icon">☀️</span><span>Сегодня</span></div>
+    <div class="tab-item active" data-tab="students" onclick="switchTab('students')"><span class="icon">👥</span><span>Ученики</span></div>
+    <div class="tab-item" data-tab="groups" onclick="switchTab('groups')"><span class="icon">👥</span><span>Группы</span></div>
+    <div class="tab-item" data-tab="lessons" onclick="switchTab('lessons')"><span class="icon">📅</span><span>Занятия</span></div>
+    <div class="tab-item" data-tab="more" onclick="switchTab('more')"><span class="icon">⚙️</span><span>Ещё</span></div>
+  </div>
+
+  <!-- Основной контент -->
+  <div class="app-content" id="appContent">
+    <div id="tab-students" class="tab-content active">
+      <div class="section-header"><h2>Ученики</h2></div>
+      <div class="search-sort-row">
+        <input class="search-input" id="searchInput" placeholder="🔍 Поиск" oninput="renderStudentList()">
+        <select class="sort-select" id="sortSelect" onchange="renderStudentList()">
+          <option value="nameAsc">Имя (А-Я)</option>
+          <option value="nameDesc">Имя (Я-А)</option>
+          <option value="ageAsc">Возраст (младшие)</option>
+          <option value="ageDesc">Возраст (старшие)</option>
+        </select>
+      </div>
+      <button class="add-btn" onclick="openQuickAddModal()">+ Добавить ученика</button>
+      <div id="studentsList"></div>
+    </div>
+    <div id="tab-today" class="tab-content"></div>
+    <div id="tab-groups" class="tab-content"></div>
+    <div id="tab-lessons" class="tab-content"></div>
+    <div id="tab-more" class="tab-content"></div>
+  </div>
+
+  <!-- Полноэкранная карточка ученика (скрыта) -->
+  <div class="student-detail-screen hidden" id="studentDetailScreen"></div>
+
+  <!-- Модальное окно быстрого создания ученика -->
+  <div class="modal-overlay hidden" id="quickAddModal">
+    <div class="modal-sheet">
+      <h3 style="font-size:22px; margin-bottom:16px;">Новый ученик</h3>
+      <input id="qFirstName" placeholder="Имя">
+      <input id="qLastName" placeholder="Фамилия">
+      <input type="tel" id="qPhone" placeholder="Телефон родителя">
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="closeQuickAddModal()">Отмена</button>
+        <button class="btn" onclick="quickAddStudent()">Создать</button>
+      </div>
+      <p style="margin-top:12px; font-size:14px; color:var(--text-secondary);">После создания можно сразу добавить в группу.</p>
+    </div>
+  </div>
+
+  <!-- Модальное окно выбора группы (после быстрого создания) -->
+  <div class="modal-overlay hidden" id="groupSelectModal">
+    <div class="modal-sheet" id="groupSelectContent"></div>
+  </div>
+</div>
+
+<script>
+  // ===================== ДАННЫЕ =====================
+  // Структура: students, families, groups, enrollments, developmentHistory, eventHistory и т.д.
+  const families = {
+    1: { id: 1, parents: [{ name: 'Елена Иванова', phone: '+79001234567' }] },
+    2: { id: 2, parents: [{ name: 'Ольга Петрова', phone: '+79161112233' }] }
+  };
+
+  let students = [
+    { id: 1, firstName: 'Артём', lastName: 'Иванов', birthDate: '2015-03-15', familyId: 1, status: 'active' },
+    { id: 2, firstName: 'София', lastName: 'Петрова', birthDate: '2017-07-22', familyId: 2, status: 'active' },
+    { id: 3, firstName: 'Даниил', lastName: 'Сидоров', birthDate: '2014-11-05', familyId: 1, status: 'active' }
+  ];
+
+  const groups = [
+    { id: 1, name: 'Английский А1', teacher: 'Мария Иванова', room: 'Каб. 3', slots: [{ day: 'Пн', time: '17:00' }, { day: 'Ср', time: '17:00' }] },
+    { id: 2, name: 'Робототехника', teacher: 'Иван Сергеев', room: 'Робозал', slots: [{ day: 'Вт', time: '16:00' }, { day: 'Чт', time: '16:00' }] }
+  ];
+
+  let enrollments = [
+    { studentId: 1, groupId: 1 }, { studentId: 1, groupId: 2 },
+    { studentId: 3, groupId: 2 }
+  ];
+
+  const payments = {
+    1: [{ date: '2026-07-01', amount: 5000, paidUntil: '2026-09-01' }]
+  };
+
+  const questionnaires = {};
+
+  const eventHistory = [
+    { studentId: 1, date: '2026-07-01', text: 'Зачислен в Робототехнику' },
+    { studentId: 1, date: '2026-07-05', text: 'Оплата 5000 ₽' }
+  ];
+
+  const developmentHistory = [
+    { studentId: 1, date: '2026-07-10', type: 'observation', text: 'Помогал другим детям' },
+    { studentId: 1, date: '2026-07-08', type: 'recommendation', source: 'ИИ', text: 'Давать больше самостоятельности' },
+    { studentId: 1, date: '2026-06-20', type: 'hypothesis', text: 'Боится ошибаться публично', status: 'Проверяется' }
+  ];
+
+  const childPortrait = {
+    1: {
+      strengths: 'Любознательность, помощь другим',
+      interests: 'Робототехника, конструирование',
+      currentHypotheses: 'Боится ошибаться публично',
+      recommendationsForTeacher: 'Давать больше самостоятельности, парная работа',
+      recommendationsForParents: 'Поощрять инициативу дома'
+    }
+  };
+
+  // Вспомогательные функции
+  function getAge(birthDate) {
+    if (!birthDate) return '?';
+    const today = new Date(); const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  }
+
+  function getIndicatorColor(studentId) {
+    const dev = developmentHistory.filter(e => e.studentId === studentId);
+    if (dev.some(e => e.type === 'conclusion')) return 'var(--green)';
+    if (dev.some(e => e.type === 'recommendation')) return 'var(--yellow)';
+    if (dev.some(e => e.type === 'observation')) return 'var(--blue)';
+    return 'var(--gray)';
+  }
+
+  function getStudentStats(studentId) {
+    const dev = developmentHistory.filter(e => e.studentId === studentId);
+    return {
+      recs: dev.filter(e => e.type === 'recommendation').length,
+      hyps: dev.filter(e => e.type === 'hypothesis').length,
+      obs: dev.filter(e => e.type === 'observation').length
+    };
+  }
+
+  // Сортировка
+  function getSortedStudents() {
+    const sortType = document.getElementById('sortSelect')?.value || 'nameAsc';
+    const copy = [...students];
+    switch (sortType) {
+      case 'nameAsc': return copy.sort((a,b) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
+      case 'nameDesc': return copy.sort((a,b) => (b.lastName + b.firstName).localeCompare(a.lastName + a.firstName));
+      case 'ageAsc': return copy.sort((a,b) => (getAge(a.birthDate)||0) - (getAge(b.birthDate)||0));
+      case 'ageDesc': return copy.sort((a,b) => (getAge(b.birthDate)||0) - (getAge(a.birthDate)||0));
+      default: return copy;
+    }
+  }
+
+  // ===================== СПИСОК УЧЕНИКОВ =====================
+  function renderStudentList() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const sorted = getSortedStudents();
+    const filtered = sorted.filter(s => 
+      s.firstName.toLowerCase().includes(query) || s.lastName.toLowerCase().includes(query)
+    );
+    const container = document.getElementById('studentsList');
+    container.innerHTML = filtered.map(s => {
+      const studentGroups = enrollments.filter(e => e.studentId === s.id).map(e => groups.find(g => g.id === e.groupId));
+      const groupNames = studentGroups.map(g => g.name).join(', ') || 'Нет групп';
+      const stats = getStudentStats(s.id);
+      const dotColor = getIndicatorColor(s.id);
+      return `
+        <div class="student-card" onclick="openStudentDetail(${s.id})">
+          <div class="student-avatar">
+            ${s.firstName[0]}${s.lastName[0]}
+            <span class="indicator-dot" style="background:${dotColor};"></span>
+          </div>
+          <div class="student-info">
+            <div class="student-name">${s.firstName} ${s.lastName}</div>
+            <div class="student-meta">${getAge(s.birthDate)} лет • ${groupNames}</div>
+            <div class="student-stats">
+              ${stats.recs > 0 ? `<span class="stat-badge">💡${stats.recs}</span>` : ''}
+              ${stats.hyps > 0 ? `<span class="stat-badge">🧠${stats.hyps}</span>` : ''}
+              ${stats.obs > 0 ? `<span class="stat-badge">👁️${stats.obs}</span>` : ''}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ===================== ДЕТАЛЬНАЯ КАРТОЧКА УЧЕНИКА =====================
+  function openStudentDetail(studentId) {
+    const s = students.find(st => st.id === studentId);
+    if (!s) return;
+    const studentGroups = enrollments.filter(e => e.studentId === s.id).map(e => groups.find(g => g.id === e.groupId));
+    const nextLesson = studentGroups.length > 0 ? studentGroups[0].slots[0] : null;
+    const family = families[s.familyId] || { parents: [] };
+    const payment = payments[studentId] ? payments[studentId][payments[studentId].length-1] : null;
+    const stats = getStudentStats(studentId);
+    const portrait = childPortrait[studentId] || {};
+
+    const screen = document.getElementById('studentDetailScreen');
+    screen.innerHTML = `
+      <div class="detail-header">
+        <button class="back-btn" onclick="closeStudentDetail()">‹</button>
+        <div><div style="font-size:26px;font-weight:700;">${s.firstName} ${s.lastName}</div><div style="color:var(--text-secondary); font-size:18px;">${getAge(s.birthDate)} лет</div></div>
+      </div>
+      <div class="schedule-btn" onclick="shareSchedule(${studentId})">📅 Расписание</div>
+      <div class="detail-summary">
+        <div class="groups">${studentGroups.map(g => `<span class="group-chip">${g.name}</span>`).join('')}</div>
+        ${nextLesson ? `<div class="next-lesson">Следующее: ${nextLesson.day} ${nextLesson.time}</div>` : ''}
+        <div class="stats-row">
+          <div class="stat-item">💡 ${stats.recs} рекомендаций</div>
+          <div class="stat-item">🧠 ${stats.hyps} гипотез</div>
+          <div class="stat-item">👁️ ${stats.obs} наблюдений</div>
+          ${payment ? `<div class="stat-item">💰 Оплачено до ${payment.paidUntil}</div>` : ''}
+        </div>
+      </div>
+      <div class="detail-tabs" id="detailTabs">
+        <span class="detail-tab active" data-tab="portrait">🧠 Картина</span>
+        <span class="detail-tab" data-tab="history">📋 История</span>
+        <span class="detail-tab" data-tab="development">🧠 Развитие</span>
+        <span class="detail-tab" data-tab="learning">📚 Обучение</span>
+        <span class="detail-tab" data-tab="finance">💰 Финансы</span>
+        <span class="detail-tab" data-tab="documents">📄 Документы</span>
+      </div>
+      <div id="tab-portrait" class="tab-content active">
+        <div class="portrait-block"><h4>Сильные стороны</h4><p>${portrait.strengths || '—'}</p></div>
+        <div class="portrait-block"><h4>Интересы</h4><p>${portrait.interests || '—'}</p></div>
+        <div class="portrait-block"><h4>Текущие гипотезы</h4><p>${portrait.currentHypotheses || '—'}</p></div>
+        <div class="portrait-block"><h4>Рекомендации педагогам</h4><p>${portrait.recommendationsForTeacher || '—'}</p></div>
+        <div class="portrait-block"><h4>Рекомендации родителям</h4><p>${portrait.recommendationsForParents || '—'}</p></div>
+      </div>
+      <div id="tab-history" class="tab-content">
+        ${eventHistory.filter(e => e.studentId === studentId).sort((a,b)=>b.date.localeCompare(a.date)).map(e => `
+          <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-text"><div>${e.text}</div><div class="timeline-date">${e.date}</div></div></div>`).join('') || '<p>Нет событий</p>'}
+      </div>
+      <div id="tab-development" class="tab-content">
+        ${developmentHistory.filter(e => e.studentId === studentId).sort((a,b)=>b.date.localeCompare(a.date)).map(e => `
+          <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-text"><div>${e.text}</div><div class="timeline-date">${e.date}</div></div></div>`).join('') || '<p>Нет данных</p>'}
+      </div>
+      <div id="tab-learning" class="tab-content">
+        ${studentGroups.map(g => `
+          <div style="margin-bottom:12px; font-size:17px;"><strong>${g.name}</strong> (${g.teacher}, ${g.room})
+            <div style="display:flex; gap:6px; margin-top:4px;">${g.slots.map(s => `<span style="background:var(--blue-light); padding:6px 14px; border-radius:16px; font-size:16px;">${s.day} ${s.time}</span>`).join('')}</div>
+          </div>`).join('')}
+        <button class="btn btn-secondary btn-block" onclick="addToGroup(${studentId})">+ Добавить в группу</button>
+      </div>
+      <div id="tab-finance" class="tab-content" style="font-size:17px;">
+        ${payment ? `<p>Последний платёж: ${payment.amount} ₽ (${payment.date})</p><p>Оплачено до: ${payment.paidUntil}</p>` : '<p>Нет данных</p>'}
+      </div>
+      <div id="tab-documents" class="tab-content" style="font-size:17px;">
+        ${(questionnaires[studentId] || []).map(q => `<p>${q.date} — ${q.type}: ${q.goals||''}</p>`).join('') || '<p>Нет документов</p>'}
+      </div>
+    `;
+    screen.classList.remove('hidden');
+
+    // Обработчики переключения табов
+    document.querySelectorAll('#detailTabs .detail-tab').forEach(tab => {
+      tab.onclick = function() {
+        document.querySelectorAll('#detailTabs .detail-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        const tabName = this.dataset.tab;
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        const target = document.getElementById(`tab-${tabName}`);
+        if (target) target.classList.add('active');
+      };
+    });
+  }
+
+  function closeStudentDetail() {
+    document.getElementById('studentDetailScreen').classList.add('hidden');
+    // При закрытии карточки обновляем список учеников на главном экране (на случай изменений)
+    renderStudentList();
+  }
+
+  // ===================== БЫСТРОЕ ДОБАВЛЕНИЕ УЧЕНИКА =====================
+  function openQuickAddModal() { document.getElementById('quickAddModal').classList.remove('hidden'); }
+  function closeQuickAddModal() { document.getElementById('quickAddModal').classList.add('hidden'); }
+
+  window.quickAddStudent = function() {
+    const firstName = document.getElementById('qFirstName').value.trim();
+    const lastName = document.getElementById('qLastName').value.trim();
+    const phone = document.getElementById('qPhone').value.trim();
+    if (!firstName || !lastName || !phone) { alert('Введите имя, фамилию и телефон родителя'); return; }
+    // Создаём семью и ученика
+    const newFamilyId = Date.now();
+    families[newFamilyId] = { id: newFamilyId, parents: [{ name: 'Родитель', phone: phone }] };
+    const newStudent = { id: Date.now(), firstName, lastName, birthDate: null, familyId: newFamilyId, status: 'active' };
+    students.push(newStudent);
+    renderStudentList();
+    closeQuickAddModal();
+    // Очищаем поля
+    document.getElementById('qFirstName').value = '';
+    document.getElementById('qLastName').value = '';
+    document.getElementById('qPhone').value = '';
+    // Сразу предлагаем выбрать группу
+    openGroupSelectModal(newStudent.id);
+  };
+
+  // ===================== ВЫБОР ГРУППЫ СРАЗУ ПОСЛЕ СОЗДАНИЯ =====================
+  function openGroupSelectModal(studentId) {
+    const modal = document.getElementById('groupSelectContent');
+    modal.innerHTML = `
+      <h3 style="font-size:22px; margin-bottom:16px;">Добавить в группу</h3>
+      <p>Выберите группу для ученика:</p>
+      <div id="groupList" style="margin:12px 0;">
+        ${groups.map(g => `
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+            <input type="checkbox" value="${g.id}" class="group-checkbox"> ${g.name} (${g.teacher})
+          </label>
+        `).join('')}
+      </div>
+      <button class="btn btn-block" onclick="addSelectedGroups(${studentId})">Добавить</button>
+      <button class="btn btn-secondary btn-block" onclick="closeGroupSelectModal()">Пропустить</button>
+    `;
+    document.getElementById('groupSelectModal').classList.remove('hidden');
+  }
+
+  function closeGroupSelectModal() {
+    document.getElementById('groupSelectModal').classList.add('hidden');
+  }
+
+  window.addSelectedGroups = function(studentId) {
+    const checkboxes = document.querySelectorAll('#groupSelectContent .group-checkbox');
+    let added = 0;
+    checkboxes.forEach(cb => {
+      if (cb.checked) {
+        const groupId = parseInt(cb.value);
+        if (!enrollments.some(e => e.studentId === studentId && e.groupId === groupId)) {
+          enrollments.push({ studentId, groupId });
+          added++;
+        }
+      }
+    });
+    closeGroupSelectModal();
+    if (added > 0) {
+      // Показать расписание сразу
+      shareSchedule(studentId);
+    }
+    // Открываем карточку ученика для дальнейших действий
+    openStudentDetail(studentId);
+  };
+
+  // ===================== ПОДЕЛИТЬСЯ РАСПИСАНИЕМ =====================
+  window.shareSchedule = function(studentId) {
+    const s = students.find(st => st.id === studentId);
+    const studentGroups = enrollments.filter(e => e.studentId === studentId).map(e => groups.find(g => g.id === e.groupId));
+    if (studentGroups.length === 0) { alert('Нет групп'); return; }
+    let text = `${s.firstName} ${s.lastName}\n\n`;
+    studentGroups.forEach(g => {
+      text += `${g.name}\nПедагог: ${g.teacher}\nКабинет: ${g.room}\n`;
+      g.slots.forEach(slot => text += `${slot.day} ${slot.time}\n`);
+      text += '\n';
+    });
+    alert('Расписание для отправки:\n\n' + text);
+    navigator.clipboard?.writeText(text);
+  };
+
+  window.addToGroup = function(studentId) {
+    const groupName = prompt('Введите название группы (Английский А1, Робототехника):');
+    if (!groupName) return;
+    const group = groups.find(g => g.name === groupName);
+    if (group) {
+      enrollments.push({ studentId, groupId: group.id });
+      closeStudentDetail();
+      openStudentDetail(studentId);
+    } else alert('Группа не найдена');
+  };
+
+  // ===================== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК =====================
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  }
+
+  // Закрытие модалок по клику вне
+  document.getElementById('quickAddModal').addEventListener('click', function(e) { if (e.target === this) closeQuickAddModal(); });
+  document.getElementById('groupSelectModal').addEventListener('click', function(e) { if (e.target === this) closeGroupSelectModal(); });
+
+  // Первоначальная отрисовка
+  renderStudentList();
+</script>
+</body>
+</html>

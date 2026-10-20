@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>Менеджер — Задачи</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card-bg: #ffffff;
+      --text: #1d1d1f;
+      --text-secondary: #86868b;
+      --green: #34c759;
+      --green-light: #e8f8ed;
+      --yellow: #ffcc00;
+      --yellow-light: #fff9e6;
+      --orange: #ff9500;
+      --red: #ff3b30;
+      --gray: #e5e5ea;
+      --gray-light: #f2f2f7;
+      --blue: #007aff;
+      --blue-light: #e8f2ff;
+      --separator: #e5e5ea;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --transition-fast: 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .app-container { width: 100%; max-width: 480px; min-height: 100vh; background: var(--bg); display: flex; flex-direction: column; position: relative; overflow-x: hidden; }
+    .app-content { flex: 1; overflow-y: auto; padding: 20px 20px 100px 20px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .app-content::-webkit-scrollbar { display: none; }
+
+    .tab-bar {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px; background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(0,0,0,0.05);
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 8px 0 20px 0; z-index: 50;
+    }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer; }
+    .tab-item.active { color: var(--blue); }
+    .tab-item .icon { font-size: 24px; }
+
+    /* Задачи */
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section-header h2 { font-size: 32px; font-weight: 700; }
+    .bucket-title { font-size: 20px; font-weight: 700; margin: 24px 0 8px; display: flex; justify-content: space-between; align-items: center; }
+    .bucket-count { font-size: 14px; color: var(--text-secondary); background: var(--gray-light); padding: 2px 10px; border-radius: 10px; }
+
+    .task-item {
+      background: var(--card-bg); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 6px;
+      box-shadow: var(--shadow-sm); cursor: pointer; transition: all var(--transition-fast);
+      border-left: 4px solid transparent; display: flex; align-items: center; gap: 12px;
+    }
+    .task-item:active { transform: scale(0.98); }
+    .task-item.completed { opacity: 0.6; background: #f9f9f9; border-left-color: var(--green); }
+    .task-item.completed .task-title { text-decoration: line-through; color: var(--text-secondary); }
+    .task-item.overdue { border-left-color: var(--red); }
+    .task-checkbox {
+      width: 22px; height: 22px; border-radius: 50%; border: 2px solid #c7c7cc;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; color: white;
+    }
+    .task-checkbox.checked { background: var(--green); border-color: var(--green); }
+    .task-body { flex: 1; min-width: 0; }
+    .task-title { font-size: 16px; font-weight: 500; }
+    .task-meta { font-size: 12px; color: var(--text-secondary); display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+    .task-type { padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; background: var(--gray-light); }
+    .task-type.urgent { background: #ffebea; color: #cc0000; }
+
+    .add-btn {
+      background: var(--blue); color: white; border: none; border-radius: 20px;
+      padding: 12px 24px; font-weight: 600; font-size: 15px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 16px;
+      box-shadow: 0 4px 12px rgba(0,122,255,0.25);
+    }
+
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.3); backdrop-filter: blur(4px);
+      z-index: 300; display: flex; align-items: flex-end; justify-content: center;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-sheet {
+      background: white; width: 100%; max-width: 480px; border-radius: 24px 24px 0 0;
+      padding: 20px; max-height: 80vh; overflow-y: auto; animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .input-field, .select-field, .textarea-field {
+      width: 100%; padding: 12px 14px; border-radius: 14px;
+      border: 1px solid var(--separator); background: var(--card-bg);
+      font-size: 15px; outline: none; margin-bottom: 12px; font-family: inherit;
+    }
+    .btn { background: var(--blue); color: white; border: none; border-radius: 20px; padding: 12px 24px; font-weight: 600; font-size: 15px; cursor: pointer; }
+    .btn-secondary { background: var(--gray-light); color: var(--text); }
+    .btn-danger { background: var(--red-light); color: var(--red); }
+    .flex-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+  <div class="tab-bar">
+    <div class="tab-item" data-tab="today" onclick="switchTab('today')"><span class="icon">☀️</span><span>Сегодня</span></div>
+    <div class="tab-item active" data-tab="tasks" onclick="switchTab('tasks')"><span class="icon">✅</span><span>Задачи</span></div>
+    <div class="tab-item" data-tab="students" onclick="switchTab('students')"><span class="icon">👥</span><span>Ученики</span></div>
+    <div class="tab-item" data-tab="groups" onclick="switchTab('groups')"><span class="icon">👥</span><span>Группы</span></div>
+    <div class="tab-item" data-tab="lessons" onclick="switchTab('lessons')"><span class="icon">📅</span><span>Занятия</span></div>
+  </div>
+
+  <div class="app-content" id="appContent">
+    <!-- Вкладка Задачи -->
+    <div id="tab-tasks" class="tab-content active">
+      <div class="section-header"><h2>Задачи</h2></div>
+      <div id="tasksBuckets"></div>
+      <button class="add-btn" onclick="openAddTaskModal()">+ Новая задача</button>
+    </div>
+    <div id="tab-today" class="tab-content"></div>
+    <div id="tab-students" class="tab-content"></div>
+    <div id="tab-groups" class="tab-content"></div>
+    <div id="tab-lessons" class="tab-content"></div>
+  </div>
+
+  <!-- Модальное окно редактирования задачи -->
+  <div class="modal-overlay hidden" id="editTaskModal">
+    <div class="modal-sheet" id="editTaskContent"></div>
+  </div>
+
+  <!-- Модальное окно быстрого добавления -->
+  <div class="modal-overlay hidden" id="addTaskModal">
+    <div class="modal-sheet">
+      <h3>Новая задача</h3>
+      <input class="input-field" id="newTaskTitle" placeholder="Название">
+      <select class="select-field" id="newTaskType">
+        <option value="📝">📝 Свободная</option>
+        <option value="📞">📞 Позвонить</option>
+        <option value="💰">💰 Оплата</option>
+        <option value="📅">📅 Расписание</option>
+        <option value="👨‍🎓">👨‍🎓 Ученик</option>
+        <option value="📄">📄 Договор</option>
+        <option value="⚠️">⚠️ Проблема</option>
+      </select>
+      <div class="flex-row" style="justify-content: flex-end;">
+        <button class="btn btn-secondary" onclick="closeAddTaskModal()">Отмена</button>
+        <button class="btn" onclick="addTask()">Создать</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===================== ДАННЫЕ ЗАДАЧ =====================
+  let tasks = [
+    { id: 1, title: 'Позвонить маме Артёма', type: '??', bucket: 'today', dueDate: '2026-07-14', completed: false, description: '', linkedStudentId: 1 },
+    { id: 2, title: 'Подготовить договор Петровым', type: '📄', bucket: 'today', dueDate: '2026-07-15', completed: false, description: '', linkedStudentId: null },
+    { id: 3, title: 'Найти замену педагогу', type: '⚠️', bucket: 'today', dueDate: '2026-07-14', completed: false, description: '', linkedStudentId: null },
+    { id: 4, title: 'Обновить сайт', type: '📝', bucket: 'later', dueDate: null, completed: false, description: '', linkedStudentId: null },
+    { id: 5, title: 'Жду ответ от мамы Даниила', type: '📞', bucket: 'waiting', dueDate: null, completed: false, description: '', linkedStudentId: 3 }
+  ];
+
+  const students = [
+    { id: 1, firstName: 'Артём', lastName: 'Иванов' },
+    { id: 2, firstName: 'София', lastName: 'Петрова' },
+    { id: 3, firstName: 'Даниил', lastName: 'Сидоров' }
+  ];
+
+  // ===================== ОТРИСОВКА =====================
+  function renderTasks() {
+    const buckets = ['today', 'later', 'waiting'];
+    const bucketNames = { today: 'Сегодня', later: 'Позже', waiting: 'Ожидание' };
+    const container = document.getElementById('tasksBuckets');
+    let html = '';
+    buckets.forEach(bucket => {
+      const bucketTasks = tasks.filter(t => t.bucket === bucket);
+      html += `<div class="bucket-title">${bucketNames[bucket]} <span class="bucket-count">${bucketTasks.filter(t => !t.completed).length}</span></div>`;
+      bucketTasks.forEach(t => {
+        const overdue = t.dueDate && new Date(t.dueDate) < new Date() && bucket === 'today' && !t.completed;
+        const taskClass = `${t.completed ? 'completed' : ''} ${overdue ? 'overdue' : ''}`;
+        html += `
+          <div class="task-item ${taskClass}" onclick="openEditTask(${t.id})">
+            <div class="task-checkbox ${t.completed ? 'checked' : ''}">${t.completed ? '✓' : ''}</div>
+            <div class="task-body">
+              <div class="task-title">${t.title}</div>
+              <div class="task-meta">
+                <span class="task-type ${t.type === '⚠️' ? 'urgent' : ''}">${t.type}</span>
+                ${t.dueDate ? `<span>📅 ${t.dueDate}</span>` : ''}
+                ${t.linkedStudentId ? `<span>👤 ${students.find(s => s.id === t.linkedStudentId)?.firstName}</span>` : ''}
+              </div>
+            </div>
+          </div>`;
+      });
+    });
+    container.innerHTML = html;
+  }
+
+  // ===================== РЕДАКТИРОВАНИЕ =====================
+  function openEditTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const html = `
+      <h3>Редактирование</h3>
+      <input class="input-field" id="editTitle" value="${escapeHtml(task.title)}">
+      <textarea class="textarea-field" id="editDescription" placeholder="Описание">${escapeHtml(task.description || '')}</textarea>
+      <select class="select-field" id="editBucket">
+        <option value="today" ${task.bucket === 'today' ? 'selected' : ''}>Сегодня</option>
+        <option value="later" ${task.bucket === 'later' ? 'selected' : ''}>Позже</option>
+        <option value="waiting" ${task.bucket === 'waiting' ? 'selected' : ''}>Ожидание</option>
+      </select>
+      <label>Отметить как выполненное <input type="checkbox" id="editCompleted" ${task.completed ? 'checked' : ''}></label>
+      <div class="flex-row" style="justify-content: space-between; margin-top:16px;">
+        <button class="btn btn-danger" onclick="deleteTask(${task.id})">Удалить</button>
+        <button class="btn" onclick="saveTask(${task.id})">Сохранить</button>
+      </div>`;
+    document.getElementById('editTaskContent').innerHTML = html;
+    document.getElementById('editTaskModal').classList.remove('hidden');
+  }
+
+  function closeEditTaskModal() { document.getElementById('editTaskModal').classList.add('hidden'); }
+  function saveTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    task.title = document.getElementById('editTitle').value.trim();
+    task.description = document.getElementById('editDescription').value.trim();
+    task.bucket = document.getElementById('editBucket').value;
+    task.completed = document.getElementById('editCompleted').checked;
+    closeEditTaskModal();
+    renderTasks();
+  }
+  function deleteTask(taskId) {
+    tasks = tasks.filter(t => t.id !== taskId);
+    closeEditTaskModal();
+    renderTasks();
+  }
+
+  // ===================== ДОБАВЛЕНИЕ =====================
+  function openAddTaskModal() { document.getElementById('addTaskModal').classList.remove('hidden'); }
+  function closeAddTaskModal() { document.getElementById('addTaskModal').classList.add('hidden'); }
+  function addTask() {
+    const title = document.getElementById('newTaskTitle').value.trim();
+    if (!title) return;
+    tasks.push({
+      id: Date.now(),
+      title,
+      type: document.getElementById('newTaskType').value,
+      bucket: 'today',
+      dueDate: null,
+      completed: false,
+      description: '',
+      linkedStudentId: null
+    });
+    closeAddTaskModal();
+    renderTasks();
+  }
+
+  function escapeHtml(text) { return text.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m]); }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    const target = document.getElementById(`tab-${tab}`);
+    if (target) target.classList.add('active');
+    document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+    const tabEl = document.querySelector(`[data-tab="${tab}"]`);
+    if (tabEl) tabEl.classList.add('active');
+    if (tab === 'tasks') renderTasks();
+  }
+
+  // Закрытие модалок по клику вне
+  document.getElementById('editTaskModal').addEventListener('click', function(e) { if (e.target === this) closeEditTaskModal(); });
+  document.getElementById('addTaskModal').addEventListener('click', function(e) { if (e.target === this) closeAddTaskModal(); });
+
+  renderTasks();
+</script>
+</body>
+</html>

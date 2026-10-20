@@ -137,25 +137,31 @@ export default function TeacherTodayPage() {
     setAttendanceMap(attMap)
     setMarkMap(mMap)
 
-    // Fetch recommendations
-    if (teacherId) {
-      globalThis.fetch(`/api/recommendations?teacherId=${teacherId}`)
-        .then(r => r.ok ? r.json() : [])
-        .then(setTeacherRecs)
-    }
-    const sids = data.attendances.map(a => a.student.id)
-    if (sids.length > 0) {
-      globalThis.fetch(`/api/recommendations?studentIds=${sids.join(',')}`)
-        .then(r => r.ok ? r.json() : [])
-        .then((recs: { studentId: string; id: string; text: string }[]) => {
-          const map: Record<string, { id: string; text: string }[]> = {}
-          recs.forEach(r => {
-            if (!map[r.studentId]) map[r.studentId] = []
-            map[r.studentId].push({ id: r.id, text: r.text })
+    // Fetch recommendations using enrolled students (not attendances)
+    const refetchRecs = async () => {
+      if (teacherId) {
+        globalThis.fetch(`/api/recommendations?teacherId=${teacherId}`)
+          .then(r => r.ok ? r.json() : [])
+          .then(setTeacherRecs)
+      }
+      const sids = enrolled.map(s => s.id)
+      if (sids.length > 0) {
+        globalThis.fetch(`/api/recommendations?studentIds=${sids.join(',')}`)
+          .then(r => r.ok ? r.json() : [])
+          .then((recs: { studentId: string; id: string; text: string }[]) => {
+            const map: Record<string, { id: string; text: string }[]> = {}
+            recs.forEach(r => {
+              if (!map[r.studentId]) map[r.studentId] = []
+              map[r.studentId].push({ id: r.id, text: r.text })
+            })
+            setStudentRecs(map)
           })
-          setStudentRecs(map)
-        })
+      }
     }
+    await refetchRecs()
+
+    // expose refetchRecs for later use
+    ;(window as any).__refetchRecs = refetchRecs
   }
 
   const finishLesson = async () => {
@@ -216,6 +222,8 @@ export default function TeacherTodayPage() {
         })
         const res = await globalThis.fetch(`/api/lessons/${selectedLesson.id}`)
         if (res.ok) setSelectedLesson(await res.json())
+        // Refetch recommendations after saving observation
+        if (window.__refetchRecs) await window.__refetchRecs()
       }
     } else if (notePopup.type === 'groupNote') {
       setLessonNote(text)

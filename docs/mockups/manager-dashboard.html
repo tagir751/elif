@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>Менеджер — Сегодня</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card-bg: #ffffff;
+      --text: #1d1d1f;
+      --text-secondary: #86868b;
+      --text-tertiary: #aeaeb2;
+      --green: #34c759;
+      --green-light: #e8f8ed;
+      --yellow: #ffcc00;
+      --yellow-light: #fff9e6;
+      --orange: #ff9500;
+      --orange-light: #fff3e6;
+      --red: #ff3b30;
+      --red-light: #ffebea;
+      --gray: #e5e5ea;
+      --gray-light: #f2f2f7;
+      --blue: #007aff;
+      --blue-light: #e8f2ff;
+      --separator: #e5e5ea;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 24px;
+      --transition-fast: 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .app-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 20px 100px 20px;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .app-content::-webkit-scrollbar { display: none; }
+
+    /* Приветствие */
+    .greeting {
+      margin-bottom: 24px;
+    }
+    .greeting-date {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-transform: lowercase;
+      margin-bottom: 4px;
+    }
+    .greeting-hello {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      line-height: 1.1;
+    }
+    .greeting-name {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Секции задач */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 24px 0 8px;
+    }
+    .section-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .section-header .count {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--gray-light);
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+
+    /* Карточка задачи */
+    .task-item {
+      background: var(--card-bg);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin-bottom: 6px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all var(--transition-fast);
+      cursor: pointer;
+      border-left: 4px solid transparent;
+    }
+    .task-item:active { transform: scale(0.98); }
+    .task-item.completed {
+      opacity: 0.6;
+      background: #f9f9f9;
+      border-left-color: var(--green);
+    }
+    .task-item.completed .task-title { text-decoration: line-through; color: var(--text-secondary); }
+    .task-item.overdue { border-left-color: var(--red); }
+    .task-item.today { border-left-color: var(--orange); }
+    .task-item.later { border-left-color: var(--yellow); }
+    .task-item.waiting { border-left-color: #5ac8fa; }
+
+    .task-checkbox {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 2px solid #c7c7cc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+      color: white;
+      transition: all 0.2s;
+    }
+    .task-checkbox.checked {
+      background: var(--green);
+      border-color: var(--green);
+    }
+    .task-body { flex: 1; min-width: 0; }
+    .task-title { font-size: 16px; font-weight: 500; line-height: 1.3; }
+    .task-description-preview { font-size: 13px; color: var(--text-secondary); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .task-meta { font-size: 12px; color: var(--text-secondary); display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+    .task-type {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--gray-light);
+    }
+    .task-type.urgent { background: #ffebea; color: #cc0000; }
+
+    /* Кнопка добавления */
+    .add-task-btn {
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 12px 24px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 16px;
+      box-shadow: 0 4px 12px rgba(0,122,255,0.25);
+      transition: all 0.2s;
+    }
+    .add-task-btn:active { transform: scale(0.96); }
+
+    /* Модальное окно редактирования задачи */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-sheet {
+      background: white;
+      width: 100%;
+      max-width: 480px;
+      border-radius: 24px 24px 0 0;
+      padding: 20px;
+      max-height: 85vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .input-field, .select-field, .textarea-field {
+      width: 100%; padding: 12px 14px; border-radius: 14px;
+      border: 1px solid var(--separator); background: var(--card-bg);
+      font-size: 15px; outline: none; margin-top: 4px; margin-bottom: 12px;
+      font-family: inherit;
+    }
+    .textarea-field { resize: vertical; min-height: 80px; }
+
+    .btn {
+      background: var(--blue); color: white; border: none; border-radius: 20px;
+      padding: 12px 24px; font-weight: 600; font-size: 15px; cursor: pointer;
+      transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-secondary { background: var(--gray-light); color: var(--text); }
+    .btn-danger { background: var(--red-light); color: var(--red); }
+    .flex-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .full-width { width: 100%; }
+
+    .done-indicator {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 16px; font-size: 16px; font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+  <div class="app-content" id="appContent">
+    <!-- Приветствие -->
+    <div class="greeting">
+      <div class="greeting-date" id="greetingDate"></div>
+      <div class="greeting-hello" id="greetingHello"></div>
+      <div class="greeting-name">Анна Сергеевна</div>
+    </div>
+
+    <!-- Задачи: Сегодня -->
+    <div class="section-header">
+      <h2>Сегодня</h2>
+      <span class="count" id="todayCount">0</span>
+    </div>
+    <div id="todayTasks"></div>
+
+    <!-- Задачи: Позже -->
+    <div class="section-header">
+      <h2>Позже</h2>
+      <span class="count" id="laterCount">0</span>
+    </div>
+    <div id="laterTasks"></div>
+
+    <!-- Задачи: Ожидание -->
+    <div class="section-header">
+      <h2>Ожидание</h2>
+      <span class="count" id="waitingCount">0</span>
+    </div>
+    <div id="waitingTasks"></div>
+
+    <!-- Кнопка новой задачи -->
+    <button class="add-task-btn" onclick="openAddTaskModal()">+ Новая задача</button>
+  </div>
+
+  <!-- Модальное окно добавления задачи (упрощённое, без описания) -->
+  <div class="modal-overlay hidden" id="addTaskModal">
+    <div class="modal-sheet">
+      <h3 style="margin-bottom:12px;">Новая задача</h3>
+      <input class="input-field" id="newTaskTitle" placeholder="Название задачи">
+      <div class="flex-row" style="justify-content: flex-end; margin-top: 12px;">
+        <button class="btn btn-secondary" onclick="closeAddTaskModal()">Отмена</button>
+        <button class="btn" onclick="addTask()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно редактирования задачи -->
+  <div class="modal-overlay hidden" id="editTaskModal">
+    <div class="modal-sheet" id="editTaskContent"></div>
+  </div>
+</div>
+
+<script>
+  // ===================== ДАННЫЕ =====================
+  const managerName = 'Анна Сергеевна';
+
+  // Задачи с расширенным описанием
+  let tasks = [
+    { id: 1, title: 'Позвонить маме Артёма', description: 'Обсудить перенос занятия на четверг и оплату за следующий месяц.', type: '📞', bucket: 'today', dueDate: '2026-07-12', completed: false },
+    { id: 2, title: 'Подготовить договор для Петровых', description: 'Шаблон договора на сайте, нужно заполнить паспортные данные.', type: '📄', bucket: 'today', dueDate: '2026-07-12', completed: false },
+    { id: 3, title: 'Найти замену педагогу на среду', description: 'Мария Петровна заболела, нужно найти коллегу на группу А.', type: '⚠️', bucket: 'today', dueDate: '2026-07-12', completed: false },
+    { id: 4, title: 'Обновить расписание робототехники', description: '', type: '📅', bucket: 'later', dueDate: '2026-07-15', completed: false },
+    { id: 5, title: 'Купить расходники для класса', description: 'Бумага, маркеры, картридж для принтера.', type: '📝', bucket: 'later', dueDate: null, completed: false },
+    { id: 6, title: 'Жду ответ от мамы Артёма по лагерю', description: 'Отправила письмо 10 июля, жду подтверждение.', type: '📞', bucket: 'waiting', dueDate: null, completed: false }
+  ];
+
+  // ===================== ПРИВЕТСТВИЕ =====================
+  function updateGreeting() {
+    const now = new Date();
+    const hour = now.getHours();
+    const dateStr = now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    const greetings = {
+      morning: ['Доброе утро', 'Прекрасное утро', 'Удачного утра'],
+      day: ['Добрый день', 'Хорошего дня', 'Продуктивного дня'],
+      evening: ['Добрый вечер', 'Теплого вечера', 'Уютного вечера'],
+      night: ['Доброй ночи', 'Тихой ночи', 'Ночного вдохновения']
+    };
+
+    let greetingArray;
+    if (hour >= 6 && hour < 12) greetingArray = greetings.morning;
+    else if (hour >= 12 && hour < 17) greetingArray = greetings.day;
+    else if (hour >= 17 && hour < 22) greetingArray = greetings.evening;
+    else greetingArray = greetings.night;
+
+    document.getElementById('greetingDate').textContent = dateStr;
+    document.getElementById('greetingHello').textContent = greetingArray[Math.floor(Math.random() * greetingArray.length)] + ',';
+  }
+  updateGreeting();
+
+  // ===================== ОТРИСОВКА ЗАДАЧ =====================
+  function renderTasks() {
+    const renderBucket = (containerId, bucket) => {
+      const container = document.getElementById(containerId);
+      const filtered = tasks.filter(t => t.bucket === bucket);
+      container.innerHTML = filtered.map(t => {
+        const overdue = t.dueDate && new Date(t.dueDate) < new Date() && bucket === 'today' && !t.completed;
+        const taskClass = `${t.completed ? 'completed' : ''} ${overdue ? 'overdue' : bucket === 'today' ? 'today' : bucket === 'later' ? 'later' : 'waiting'}`;
+        return `
+          <div class="task-item ${taskClass}" onclick="openEditTask(${t.id})">
+            <div class="task-checkbox ${t.completed ? 'checked' : ''}">${t.completed ? '✓' : ''}</div>
+            <div class="task-body">
+              <div class="task-title">${t.title}</div>
+              ${t.description ? `<div class="task-description-preview">${t.description}</div>` : ''}
+              <div class="task-meta">
+                <span class="task-type ${t.type === '⚠️' ? 'urgent' : ''}">${t.type}</span>
+                ${t.dueDate ? `<span>📅 ${t.dueDate}</span>` : ''}
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+      document.getElementById(bucket + 'Count').textContent = filtered.filter(t => !t.completed).length;
+    };
+
+    renderBucket('todayTasks', 'today');
+    renderBucket('laterTasks', 'later');
+    renderBucket('waitingTasks', 'waiting');
+  }
+
+  // ===================== РЕДАКТИРОВАНИЕ ЗАДАЧИ =====================
+  function openEditTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const html = `
+      <h3 style="margin-bottom:16px;">Редактирование задачи</h3>
+      <label style="font-size:12px; color: var(--text-secondary);">Название</label>
+      <input class="input-field" id="editTitle" value="${escapeHtml(task.title)}">
+      <label style="font-size:12px; color: var(--text-secondary);">Описание</label>
+      <textarea class="textarea-field" id="editDescription">${escapeHtml(task.description || '')}</textarea>
+      <div class="flex-row">
+        <div style="flex:1;">
+          <label style="font-size:12px; color: var(--text-secondary);">Тип</label>
+          <select class="select-field" id="editType">
+            <option value="📝" ${task.type === '📝' ? 'selected' : ''}>📝 Свободная</option>
+            <option value="📞" ${task.type === '📞' ? 'selected' : ''}>📞 Позвонить</option>
+            <option value="💰" ${task.type === '💰' ? 'selected' : ''}>💰 Оплата</option>
+            <option value="📅" ${task.type === '📅' ? 'selected' : ''}>📅 Расписание</option>
+            <option value="👨‍🎓" ${task.type === '👨‍🎓' ? 'selected' : ''}>👨‍🎓 Ученик</option>
+            <option value="📄" ${task.type === '📄' ? 'selected' : ''}>📄 Договор</option>
+            <option value="⚠️" ${task.type === '⚠️' ? 'selected' : ''}>⚠️ Проблема</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:12px; color: var(--text-secondary);">Срок</label>
+          <input class="input-field" id="editDue" type="date" value="${task.dueDate || ''}">
+        </div>
+      </div>
+      <label style="font-size:12px; color: var(--text-secondary);">Корзина</label>
+      <select class="select-field" id="editBucket">
+        <option value="today" ${task.bucket === 'today' ? 'selected' : ''}>Сегодня</option>
+        <option value="later" ${task.bucket === 'later' ? 'selected' : ''}>Позже</option>
+        <option value="waiting" ${task.bucket === 'waiting' ? 'selected' : ''}>Ожидание</option>
+      </select>
+      <div class="done-indicator">
+        <input type="checkbox" id="editCompleted" ${task.completed ? 'checked' : ''} style="width:20px; height:20px;">
+        <label for="editCompleted">Выполнено</label>
+      </div>
+      <div class="flex-row" style="justify-content: space-between; margin-top: 16px;">
+        <button class="btn btn-danger" onclick="deleteTask(${task.id})">Удалить</button>
+        <button class="btn" onclick="saveTask(${task.id})">Сохранить</button>
+      </div>
+    `;
+    document.getElementById('editTaskContent').innerHTML = html;
+    document.getElementById('editTaskModal').classList.remove('hidden');
+  }
+
+  function closeEditTaskModal() {
+    document.getElementById('editTaskModal').classList.add('hidden');
+  }
+
+  function saveTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    task.title = document.getElementById('editTitle').value.trim();
+    task.description = document.getElementById('editDescription').value.trim();
+    task.type = document.getElementById('editType').value;
+    task.dueDate = document.getElementById('editDue').value || null;
+    task.bucket = document.getElementById('editBucket').value;
+    task.completed = document.getElementById('editCompleted').checked;
+
+    closeEditTaskModal();
+    renderTasks();
+  }
+
+  function deleteTask(taskId) {
+    tasks = tasks.filter(t => t.id !== taskId);
+    closeEditTaskModal();
+    renderTasks();
+  }
+
+  // ===================== ДОБАВЛЕНИЕ НОВОЙ ЗАДАЧИ =====================
+  function openAddTaskModal() {
+    document.getElementById('newTaskTitle').value = '';
+    document.getElementById('addTaskModal').classList.remove('hidden');
+  }
+  function closeAddTaskModal() {
+    document.getElementById('addTaskModal').classList.add('hidden');
+  }
+  function addTask() {
+    const title = document.getElementById('newTaskTitle').value.trim();
+    if (!title) return;
+    const newTask = {
+      id: Date.now(),
+      title,
+      description: '',
+      type: '📝',
+      bucket: 'today',
+      dueDate: null,
+      completed: false
+    };
+    tasks.push(newTask);
+    closeAddTaskModal();
+    renderTasks();
+  }
+
+  // Закрытие модалки редактирования при клике вне (на overlay)
+  document.getElementById('editTaskModal').addEventListener('click', function(e) {
+    if (e.target === this) closeEditTaskModal();
+  });
+  document.getElementById('addTaskModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAddTaskModal();
+  });
+
+  // Простая функция экранирования HTML (для безопасности)
+  function escapeHtml(text) {
+    return text.replace(/[&<>"]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      if (m === '"') return '&quot;';
+      return m;
+    });
+  }
+
+  // Инициализация
+  renderTasks();
+</script>
+</body>
+</html>
